@@ -1,7 +1,10 @@
-// Simple test top module for UART receiver
-// LED_RX (red) blinks when data is received
-// Green LED shows LSB of received data
-// Red LED shows MSB of received data
+// Top module: UART receiver with grammar-based FSM filter
+// Validates incoming serial data against "CAT" pattern
+//
+// LED Behavior:
+//   LED_RX (pin 26, active-high): Pulses when UART data received
+//   LED_GREEN (pin 37, active-low): Lights when "CAT" accepted
+//   LED_RED (pin 11, active-low): Lights when pattern rejected
 
 module top_test (
     input wire CLK,      // 12 MHz clock on iCEBreaker
@@ -12,7 +15,8 @@ module top_test (
 );
     wire [7:0] uart_data;
     wire uart_valid;
-    reg [7:0] last_byte = 8'h00;
+    wire accept_signal;
+    wire reject_signal;
 
     // UART Receiver instance
     uart_rx #(
@@ -25,16 +29,19 @@ module top_test (
         .data_valid(uart_valid)
     );
 
-    // Store last received byte
-    always @(posedge CLK) begin
-        if (uart_valid) begin
-            last_byte <= uart_data;
-        end
-    end
+    // Grammar FSM instance - validates "CAT" pattern
+    grammar_fsm fsm_inst (
+        .clk(CLK),
+        .rst(1'b0),
+        .data_in(uart_data),
+        .data_valid(uart_valid),
+        .accept(accept_signal),
+        .reject(reject_signal)
+    );
 
-    // LED outputs for testing
-    assign LED_RX = uart_valid;        // Active high - pulses when data received
-    assign LED_GREEN = ~last_byte[0];  // Active low - LSB of last byte (inverted)
-    assign LED_RED = ~last_byte[7];    // Active low - MSB of last byte (inverted)
+    // LED outputs
+    assign LED_RX = uart_valid;          // Active high - pulses when data received
+    assign LED_GREEN = ~accept_signal;   // Active low - ON when pattern accepted
+    assign LED_RED = ~reject_signal;     // Active low - ON when pattern rejected
 
 endmodule

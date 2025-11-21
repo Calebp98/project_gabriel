@@ -1,14 +1,14 @@
-// UART Test Sender for FPGA UART Receiver Validation
-// Raspberry Pi Pico sends test byte patterns to verify UART RX module
+// UART Test Sender for FPGA Grammar FSM
+// Raspberry Pi Pico sends test strings to validate "CAT" pattern
 //
 // Hardware Setup:
 // - Pico GP0 (UART TX) → FPGA Pin 3 (RX)
 // - Pico GND → FPGA GND
 //
 // Expected LED Behavior on FPGA:
-// - Blue LED: Pulses briefly when each byte is received
-// - Green LED: Shows bit 0 (LSB) of last received byte
-// - Red LED: Shows bit 7 (MSB) of last received byte
+// - LED_RX (pin 26): Pulses briefly when each byte is received
+// - LED_GREEN (pin 37): ON when "CAT" pattern is accepted
+// - LED_RED (pin 11): ON when pattern is rejected
 
 void setup() {
   // Initialize USB serial for debugging (optional)
@@ -20,56 +20,63 @@ void setup() {
 
   delay(2000);  // Wait for serial monitors to connect
 
-  Serial.println("=== FPGA UART RX Test Starting ===");
-  Serial.println("Sending test byte patterns...");
+  Serial.println("=== FPGA Grammar FSM Test Starting ===");
+  Serial.println("Testing 'CAT' pattern validation...");
   Serial.println("");
 }
 
 void loop() {
-  // Test 1: Send 'A' (0x41 = 0b01000001)
-  // Expected: Blue pulse, Green ON, Red OFF
-  Serial.println("Sending: 'A' (0x41 = 0b01000001)");
-  Serial.println("  Expected: Green LED ON, Red LED OFF");
-  Serial1.write('A');
-  delay(2000);
+  // Test 1: Send "CAT" - Valid pattern
+  // Expected: LED_RX pulses 3x, then GREEN LED stays ON
+  Serial.println("Test 1: Sending 'CAT'");
+  Serial.println("  Expected: GREEN LED ON (accept)");
+  Serial1.print("CAT");
+  delay(3000);
 
-  // Test 2: Send 'C' (0x43 = 0b01000011)
-  // Expected: Blue pulse, Green ON, Red OFF
-  Serial.println("Sending: 'C' (0x43 = 0b01000011)");
-  Serial.println("  Expected: Green LED ON, Red LED OFF");
-  Serial1.write('C');
-  delay(2000);
+  // Test 2: Send "DOG" - Invalid pattern (wrong first character)
+  // Expected: LED_RX pulses 1x, then RED LED stays ON
+  Serial.println("Test 2: Sending 'DOG'");
+  Serial.println("  Expected: RED LED ON (reject on 'D')");
+  Serial1.print("DOG");
+  delay(3000);
 
-  // Test 3: Send 0x80 (0b10000000)
-  // Expected: Blue pulse, Green OFF, Red ON
-  Serial.println("Sending: 0x80 (0b10000000)");
-  Serial.println("  Expected: Green LED OFF, Red LED ON");
-  Serial1.write((uint8_t)0x80);
-  delay(2000);
+  // Test 3: Send "CAR" - Invalid pattern (wrong third character)
+  // Expected: LED_RX pulses 3x, then RED LED stays ON
+  Serial.println("Test 3: Sending 'CAR'");
+  Serial.println("  Expected: RED LED ON (reject on 'R')");
+  Serial1.print("CAR");
+  delay(3000);
 
-  // Test 4: Send 0xFF (0b11111111)
-  // Expected: Blue pulse, Green ON, Red ON
-  Serial.println("Sending: 0xFF (0b11111111)");
-  Serial.println("  Expected: Green LED ON, Red LED ON");
-  Serial1.write((uint8_t)0xFF);
-  delay(2000);
+  // Test 4: Send "CA" only - Incomplete pattern
+  // Expected: LED_RX pulses 2x, FSM waits (no accept/reject yet)
+  Serial.println("Test 4: Sending 'CA' (incomplete)");
+  Serial.println("  Expected: No LED change (waiting for 'T')");
+  Serial1.print("CA");
+  delay(3000);
 
-  // Test 5: Send 0x00 (0b00000000)
-  // Expected: Blue pulse, Green OFF, Red OFF
-  Serial.println("Sending: 0x00 (0b00000000)");
-  Serial.println("  Expected: Green LED OFF, Red LED OFF");
-  Serial1.write((uint8_t)0x00);
-  delay(2000);
+  // Test 5: Now complete it with "T" to accept
+  // Expected: LED_RX pulses 1x, GREEN LED turns ON
+  Serial.println("Test 5: Sending 'T' (completing 'CAT')");
+  Serial.println("  Expected: GREEN LED ON (accept)");
+  Serial1.print("T");
+  delay(3000);
 
-  // Test 6: Send 0x01 (0b00000001)
-  // Expected: Blue pulse, Green ON, Red OFF
-  Serial.println("Sending: 0x01 (0b00000001)");
-  Serial.println("  Expected: Green LED ON, Red LED OFF");
-  Serial1.write((uint8_t)0x01);
-  delay(2000);
+  // Test 6: Send "CAT" again to verify reset works
+  // Expected: GREEN LED ON again
+  Serial.println("Test 6: Sending 'CAT' again");
+  Serial.println("  Expected: GREEN LED ON (accept)");
+  Serial1.print("CAT");
+  delay(3000);
+
+  // Test 7: Send single wrong character after accept
+  // Expected: RED LED ON
+  Serial.println("Test 7: Sending 'X' after accept");
+  Serial.println("  Expected: RED LED ON (reject)");
+  Serial1.print("X");
+  delay(3000);
 
   Serial.println("");
-  Serial.println("=== Test sequence complete. Repeating... ===");
+  Serial.println("=== Test sequence complete. Repeating in 5 seconds... ===");
   Serial.println("");
-  delay(1000);
+  delay(5000);
 }

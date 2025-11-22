@@ -4,9 +4,13 @@
 # 12 MHz Clock
 set_io CLK 35
 
-# UART TX (to picoprobe GPIO 5 RX - connect to picoprobe GPIO 5)
+# UART RX (from picoprobe GPIO 4 TX)
+# Using PMOD1A pin 3 (bottom row, first pin)
+set_io RX 3
+
+# UART TX (to picoprobe GPIO 5 RX)
 # Using PMOD1A pin 2 (top row, second pin)
 set_io TX 2
 
-# On-board LED for debugging (heartbeat)
+# On-board LED for authentication status
 set_io LED1 11

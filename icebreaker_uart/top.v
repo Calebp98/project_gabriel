@@ -1,26 +1,66 @@
-// Simplified top module - sends "HELLO\n" every 1 second
+// Challenge-response authentication system
+// Sends "CHAL:XXXX\n" every 5 seconds
+// Expects "RESP:YYYY\n" where YYYY = (XXXX XOR secret) + secret
+// If correct, blinks LED rapidly; if wrong, blinks slowly
 
 module top (
     input  wire CLK,         // 12 MHz clock on iCEbreaker
+    input  wire RX,          // UART RX from picoprobe
     output wire TX,          // UART TX to picoprobe
-    output wire LED1         // Debug LED
+    output wire LED1         // Status LED
 );
 
-    // Timer for 1 second interval: 12,000,000 clock cycles at 12 MHz
-    localparam SECOND_CYCLES = 26'd12_000_000;
+    // Secret key for authentication
+    localparam [15:0] SECRET_KEY = 16'hA5C3;
+
+    // Challenge period: 5 seconds at 12 MHz = 60,000,000 cycles
+    localparam [25:0] CHALLENGE_PERIOD = 26'd60_000_000;
+
+    // State machine
+    localparam STATE_IDLE = 2'd0;
+    localparam STATE_SEND_CHALLENGE = 2'd1;
+    localparam STATE_WAIT_RESPONSE = 2'd2;
+    localparam STATE_VERIFY = 2'd3;
 
     // UART signals
+    wire [7:0] rx_data;
+    wire rx_data_valid;
     reg [7:0] tx_data;
     reg tx_data_valid;
     wire tx_busy;
 
-    // State machine
-    reg [2:0] send_index = 0;
+    // State and timers
+    reg [1:0] state = STATE_IDLE;
     reg [25:0] timer = 0;
-    reg sending = 0;
+    reg [3:0] send_index = 0;
+    reg [3:0] recv_index = 0;
+
+    // Challenge/response
+    wire [15:0] challenge;
+    reg lfsr_enable = 0;
+    wire [15:0] expected_response = (challenge ^ SECRET_KEY) + SECRET_KEY;
+    reg [7:0] response_buffer [0:9];  // "RESP:YYYY\n"
+
+    // Authentication status
+    reg authenticated = 0;
+    reg [25:0] auth_timer = 0;
+
+    // UART TX busy edge detection
     reg tx_busy_prev = 0;
 
-    // UART transmitter instance
+    // UART receiver
+    uart_rx #(
+        .CLOCK_FREQ(12_000_000),
+        .BAUD_RATE(115200)
+    ) uart_receiver (
+        .clk(CLK),
+        .rst(1'b0),
+        .rx(RX),
+        .data(rx_data),
+        .data_valid(rx_data_valid)
+    );
+
+    // UART transmitter
     uart_tx #(
         .CLOCK_FREQ(12_000_000),
         .BAUD_RATE(115200)
@@ -33,49 +73,145 @@ module top (
         .busy(tx_busy)
     );
 
-    // Main logic
+    // LFSR for challenge generation
+    lfsr challenge_gen (
+        .clk(CLK),
+        .rst(1'b0),
+        .enable(lfsr_enable),
+        .random(challenge)
+    );
+
+    // Helper function: 4-bit value to ASCII hex
+    function [7:0] nibble_to_hex;
+        input [3:0] nibble;
+        begin
+            nibble_to_hex = (nibble < 10) ? (8'h30 + nibble) : (8'h41 + nibble - 10);
+        end
+    endfunction
+
+    // Helper function: ASCII hex to 4-bit value
+    function [3:0] hex_to_nibble;
+        input [7:0] hex;
+        begin
+            if (hex >= 8'h30 && hex <= 8'h39)  // '0'-'9'
+                hex_to_nibble = hex - 8'h30;
+            else if (hex >= 8'h41 && hex <= 8'h46)  // 'A'-'F'
+                hex_to_nibble = hex - 8'h41 + 4'd10;
+            else if (hex >= 8'h61 && hex <= 8'h66)  // 'a'-'f'
+                hex_to_nibble = hex - 8'h61 + 4'd10;
+            else
+                hex_to_nibble = 4'd0;
+        end
+    endfunction
+
+    // Main state machine
     always @(posedge CLK) begin
-        tx_data_valid <= 0;  // Default: no data to send
+        tx_data_valid <= 0;
+        lfsr_enable <= 0;
         tx_busy_prev <= tx_busy;
 
-        if (!sending) begin
-            // Increment timer when not sending
-            timer <= timer + 1;
+        // Update timers
+        timer <= timer + 1;
+        if (authenticated)
+            auth_timer <= auth_timer + 1;
 
-            // Start sending when 1 second has elapsed
-            if (timer >= SECOND_CYCLES) begin
-                timer <= 0;
-                send_index <= 0;
-                sending <= 1;
-            end
-        end else begin
-            // Sending message "HELLO\n"
-            // Detect falling edge of tx_busy (transmission complete)
-            if (tx_busy_prev && !tx_busy) begin
-                send_index <= send_index + 1;
-            end
-
-            // Send character when not busy and haven't just sent
-            if (!tx_busy && !tx_busy_prev) begin
-                if (send_index < 6) begin
-                    case (send_index)
-                        0: tx_data <= 8'h48;  // 'H'
-                        1: tx_data <= 8'h45;  // 'E'
-                        2: tx_data <= 8'h4C;  // 'L'
-                        3: tx_data <= 8'h4C;  // 'L'
-                        4: tx_data <= 8'h4F;  // 'O'
-                        5: tx_data <= 8'h0A;  // '\n'
-                    endcase
-                    tx_data_valid <= 1;
-                end else begin
-                    // Done sending
-                    sending <= 0;
+        case (state)
+            STATE_IDLE: begin
+                // Wait for 5 seconds
+                if (timer >= CHALLENGE_PERIOD) begin
+                    timer <= 0;
+                    lfsr_enable <= 1;  // Generate new challenge
+                    send_index <= 0;
+                    state <= STATE_SEND_CHALLENGE;
                 end
             end
-        end
+
+            STATE_SEND_CHALLENGE: begin
+                // Send "CHAL:XXXX\n" character by character
+                // Wait for falling edge before incrementing
+                if (tx_busy_prev && !tx_busy) begin
+                    send_index <= send_index + 1;
+                end
+
+                if (!tx_busy && !tx_busy_prev) begin
+                    if (send_index < 10) begin
+                        case (send_index)
+                            0: tx_data <= 8'h43;  // 'C'
+                            1: tx_data <= 8'h48;  // 'H'
+                            2: tx_data <= 8'h41;  // 'A'
+                            3: tx_data <= 8'h4C;  // 'L'
+                            4: tx_data <= 8'h3A;  // ':'
+                            5: tx_data <= nibble_to_hex(challenge[15:12]);
+                            6: tx_data <= nibble_to_hex(challenge[11:8]);
+                            7: tx_data <= nibble_to_hex(challenge[7:4]);
+                            8: tx_data <= nibble_to_hex(challenge[3:0]);
+                            9: tx_data <= 8'h0A;  // '\n'
+                        endcase
+                        tx_data_valid <= 1;
+                    end else begin
+                        // Done sending, wait for response
+                        recv_index <= 0;
+                        timer <= 0;  // Reset timeout
+                        state <= STATE_WAIT_RESPONSE;
+                    end
+                end
+            end
+
+            STATE_WAIT_RESPONSE: begin
+                // Collect response characters
+                if (rx_data_valid) begin
+                    if (recv_index < 10) begin
+                        response_buffer[recv_index] <= rx_data;
+                        recv_index <= recv_index + 1;
+
+                        // Check for newline (end of response)
+                        if (rx_data == 8'h0A && recv_index >= 9) begin
+                            state <= STATE_VERIFY;
+                        end
+                    end
+                end
+
+                // Timeout after 5 seconds
+                if (timer >= CHALLENGE_PERIOD) begin
+                    authenticated <= 0;
+                    state <= STATE_IDLE;
+                end
+            end
+
+            STATE_VERIFY: begin
+                // Parse "RESP:YYYY\n" and verify
+                if (response_buffer[0] == 8'h52 &&  // 'R'
+                    response_buffer[1] == 8'h45 &&  // 'E'
+                    response_buffer[2] == 8'h53 &&  // 'S'
+                    response_buffer[3] == 8'h50 &&  // 'P'
+                    response_buffer[4] == 8'h3A) begin  // ':'
+
+                    // Extract hex response
+                    if ({hex_to_nibble(response_buffer[5]),
+                         hex_to_nibble(response_buffer[6]),
+                         hex_to_nibble(response_buffer[7]),
+                         hex_to_nibble(response_buffer[8])} == expected_response) begin
+                        // Authentication successful!
+                        authenticated <= 1;
+                        auth_timer <= 0;
+                    end else begin
+                        // Wrong response
+                        authenticated <= 0;
+                    end
+                end else begin
+                    // Invalid format
+                    authenticated <= 0;
+                end
+
+                state <= STATE_IDLE;
+            end
+
+            default: state <= STATE_IDLE;
+        endcase
     end
 
-    // Blink LED with the timer (heartbeat)
-    assign LED1 = timer[23];  // Blink at ~1.4 Hz
+    // LED blinking: fast if authenticated, slow if not
+    // Fast blink: ~6 Hz (bit 20), Slow blink: ~1.4 Hz (bit 23)
+    assign LED1 = authenticated ? auth_timer[20] : timer[23];
 
 endmodule

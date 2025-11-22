@@ -1,0 +1,26 @@
+# Pin constraints for SWD Passthrough Test - iCEBreaker FPGA
+#
+# iCEBreaker PMOD Pin Mapping:
+# PMOD 1A: Pins 4, 2, 47, 45, 3, 48, 46, 44
+# PMOD 1B: Pins 43, 38, 34, 31, 42, 36, 32, 28
+#
+# Using PMOD 1A for Picoprobe connections
+# Using PMOD 1B for Target Pico connections
+
+# System Clock
+set_io CLK 35          # 12 MHz clock
+
+# Control
+# set_io enable 10       # BTN1 - Press to enable passthrough
+                       # (or can modify to tie HIGH for always-on)
+
+# SWD from Picoprobe (PMOD 1A)
+set_io swclk_in 4      # PMOD1A_1 - SWCLK from Picoprobe GP2
+set_io swdio_probe 2   # PMOD1A_2 - SWDIO from Picoprobe GP3
+
+# SWD to Target Pico (PMOD 1B)
+set_io swclk_out 43    # PMOD1B_1 - SWCLK to Target
+set_io swdio_target 38 # PMOD1B_2 - SWDIO to Target
+
+# Status LED
+set_io led_status 11   # Built-in red LED (on when enabled)

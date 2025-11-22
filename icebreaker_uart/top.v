@@ -39,8 +39,8 @@ module top (
 
     // Challenge/response
     wire [15:0] challenge;
-    reg lfsr_enable = 0;
-    wire [15:0] expected_response = (challenge ^ SECRET_KEY) + SECRET_KEY;
+    reg [15:0] challenge_snapshot = 0;  // Snapshot of challenge when sent
+    wire [15:0] expected_response = (challenge_snapshot ^ SECRET_KEY) + SECRET_KEY;
     reg [7:0] response_buffer [0:9];  // "RESP:YYYY\n"
 
     // Authentication status
@@ -78,11 +78,11 @@ module top (
         .busy(tx_busy)
     );
 
-    // LFSR for challenge generation
+    // LFSR for challenge generation (always running for better randomness)
     lfsr challenge_gen (
         .clk(CLK),
         .rst(1'b0),
-        .enable(lfsr_enable),
+        .enable(1'b1),  // Always enabled for continuous randomness
         .random(challenge)
     );
 
@@ -112,7 +112,6 @@ module top (
     // Main state machine
     always @(posedge CLK) begin
         tx_data_valid <= 0;
-        lfsr_enable <= 0;
         tx_busy_prev <= tx_busy;
 
         // Update timers
@@ -147,7 +146,7 @@ module top (
                 // Wait for 5 seconds
                 if (timer >= CHALLENGE_PERIOD) begin
                     timer <= 0;
-                    lfsr_enable <= 1;  // Generate new challenge
+                    challenge_snapshot <= challenge;  // Capture current LFSR value
                     send_index <= 0;
                     state <= STATE_SEND_CHALLENGE;
                 end
@@ -168,10 +167,10 @@ module top (
                             2: tx_data <= 8'h41;  // 'A'
                             3: tx_data <= 8'h4C;  // 'L'
                             4: tx_data <= 8'h3A;  // ':'
-                            5: tx_data <= nibble_to_hex(challenge[15:12]);
-                            6: tx_data <= nibble_to_hex(challenge[11:8]);
-                            7: tx_data <= nibble_to_hex(challenge[7:4]);
-                            8: tx_data <= nibble_to_hex(challenge[3:0]);
+                            5: tx_data <= nibble_to_hex(challenge_snapshot[15:12]);
+                            6: tx_data <= nibble_to_hex(challenge_snapshot[11:8]);
+                            7: tx_data <= nibble_to_hex(challenge_snapshot[7:4]);
+                            8: tx_data <= nibble_to_hex(challenge_snapshot[3:0]);
                             9: tx_data <= 8'h0A;  // '\n'
                         endcase
                         tx_data_valid <= 1;

@@ -12,6 +12,9 @@ module lfsr (
     // Seed value (non-zero required for LFSR)
     localparam SEED = 16'hACE1;  // "ACE1" for iCEbreaker :)
 
+    // Initialize to seed value
+    initial random = SEED;
+
     wire feedback;
 
     // Feedback polynomial: taps at bits 15, 13, 12, 10

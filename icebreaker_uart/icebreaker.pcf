@@ -12,5 +12,9 @@ set_io RX 3
 # Using PMOD1A pin 2 (top row, second pin)
 set_io TX 2
 
+# Control output pin (0V for 'Y', 3.3V for 'N')
+# Using PMOD1A pin 4
+set_io CONTROL_PIN 4
+
 # On-board LED for authentication status
 set_io LED1 11

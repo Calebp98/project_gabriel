@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """
-Test script for iCEbreaker challenge-response authentication with periodic re-auth
+Test script for iCEbreaker challenge-response authentication
 
 Usage:
     python3 test_auth.py /dev/tty.usbmodemXXXX
 
 The iCEbreaker will send a new challenge every 5 seconds.
 After authentication, you can type:
-    Y - set pin to 0V (LOW)
-    N - set pin to 3.3V (HIGH)
+    Y - Set CONTROL_PIN to 0V (LOW/ground)
+    N - Set CONTROL_PIN to 3.3V (HIGH)
+    Q - Quit
+
+The LED will blink fast when authenticated, slow when not.
 """
 
 import sys
@@ -100,14 +103,17 @@ def main():
                 import select
                 if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
                     cmd = sys.stdin.readline().strip().upper()
-                    if cmd in ['Y', 'N']:
-                        ser.write((cmd + '\n').encode('ascii'))
-                        print(f"[CMD] Sent: {cmd}")
+                    if cmd == 'Y':
+                        ser.write(cmd.encode('ascii'))
+                        print(f"[CMD] Sent: Y → CONTROL_PIN = 0V (LOW/ground)")
+                    elif cmd == 'N':
+                        ser.write(cmd.encode('ascii'))
+                        print(f"[CMD] Sent: N → CONTROL_PIN = 3.3V (HIGH)")
                     elif cmd == 'Q':
                         print("Exiting...")
                         break
                     elif cmd:
-                        print(f"[CMD] Invalid: {cmd}. Use Y, N, or Q to quit.")
+                        print(f"[CMD] Invalid: {cmd}. Use Y (0V), N (3.3V), or Q to quit.")
 
             time.sleep(0.01)  # Small delay to prevent busy-waiting
 

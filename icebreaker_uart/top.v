@@ -1,12 +1,14 @@
 // Challenge-response authentication system
 // Sends "CHAL:XXXX\n" every 5 seconds
 // Expects "RESP:YYYY\n" where YYYY = (XXXX XOR secret) + secret
-// If correct, blinks LED rapidly; if wrong, blinks slowly
+// If authenticated, accepts 'Y' (pin LOW/0V) or 'N' (pin HIGH/3.3V) commands
+// LED blinks fast if authenticated, slow if not
 
 module top (
     input  wire CLK,         // 12 MHz clock on iCEbreaker
     input  wire RX,          // UART RX from picoprobe
     output wire TX,          // UART TX to picoprobe
+    output wire CONTROL_PIN, // Control output pin (0V for 'Y', 3.3V for 'N')
     output wire LED1         // Status LED
 );
 
@@ -44,6 +46,9 @@ module top (
     // Authentication status
     reg authenticated = 0;
     reg [25:0] auth_timer = 0;
+
+    // Control pin state
+    reg control_state = 1;  // Default HIGH (3.3V)
 
     // UART TX busy edge detection
     reg tx_busy_prev = 0;
@@ -115,6 +120,28 @@ module top (
         if (authenticated)
             auth_timer <= auth_timer + 1;
 
+        // Handle Y/N commands when authenticated (but not during response collection)
+        if (authenticated && rx_data_valid &&
+            !(state == STATE_WAIT_RESPONSE && recv_index < 10)) begin
+            case (rx_data)
+                8'h59,  // 'Y'
+                8'h79:  // 'y'
+                begin
+                    control_state <= 0;  // Set to LOW (0V)
+                end
+
+                8'h4E,  // 'N'
+                8'h6E:  // 'n'
+                begin
+                    control_state <= 1;  // Set to HIGH (3.3V)
+                end
+
+                default: begin
+                    // Ignore other characters during authentication
+                end
+            endcase
+        end
+
         case (state)
             STATE_IDLE: begin
                 // Wait for 5 seconds
@@ -158,16 +185,14 @@ module top (
             end
 
             STATE_WAIT_RESPONSE: begin
-                // Collect response characters
-                if (rx_data_valid) begin
-                    if (recv_index < 10) begin
-                        response_buffer[recv_index] <= rx_data;
-                        recv_index <= recv_index + 1;
+                // Collect response characters for verification
+                if (rx_data_valid && recv_index < 10) begin
+                    response_buffer[recv_index] <= rx_data;
+                    recv_index <= recv_index + 1;
 
-                        // Check for newline (end of response)
-                        if (rx_data == 8'h0A && recv_index >= 9) begin
-                            state <= STATE_VERIFY;
-                        end
+                    // Check for newline (end of response)
+                    if (rx_data == 8'h0A && recv_index >= 9) begin
+                        state <= STATE_VERIFY;
                     end
                 end
 
@@ -213,5 +238,8 @@ module top (
     // LED blinking: fast if authenticated, slow if not
     // Fast blink: ~6 Hz (bit 20), Slow blink: ~1.4 Hz (bit 23)
     assign LED1 = authenticated ? auth_timer[20] : timer[23];
+
+    // Control pin output
+    assign CONTROL_PIN = control_state;
 
 endmodule

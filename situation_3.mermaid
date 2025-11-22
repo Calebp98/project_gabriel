@@ -1,0 +1,36 @@
+graph LR
+    subgraph RedTeam["RED TEAM"]
+        A["RED TEAM<br/>Programmer<br/>(Laptop)"]
+    end
+    
+    subgraph Translation["Translation"]
+        B["Translation<br/>(Pico)"]
+    end
+    
+    subgraph IEP["Industrial Equipment Package<br/>(Physically Secure)"]
+        C["Security<br/>(FPGA)"]
+        D["Innocent Industrial<br/>Equipment<br/>(Pico)"]
+    end
+    
+    subgraph BlueTeam["BLUE TEAM"]
+        E["BLUE TEAM<br/>Defender<br/>(Laptop)"]
+    end
+    
+    A -->|USB| B
+    B -->|3 Wire<br/>Encrypted| C
+    C -->|3 Wire<br/>Plaintext| D
+    D -.->|1 Wire Serial<br/>Breach Detection| B
+    A ==>|Explaining<br/>Vulnerability| E
+    
+    style A fill:#ffc9c9
+    style B fill:#b2f2bb
+    style C fill:#ffec99
+    style D fill:#b2f2bb
+    style E fill:#a5d8ff
+    style IEP fill:none,stroke:#1e1e1e,stroke-dasharray: 5 5
+
+    classDef redTeam fill:#ffc9c9
+    classDef blueTeam fill:#a5d8ff
+    classDef secure fill:#ffec99
+    classDef translation fill:#b2f2bb
+    

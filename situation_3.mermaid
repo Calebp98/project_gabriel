@@ -21,6 +21,8 @@ graph LR
     C -->|3 Wire<br/>Plaintext| D
     D -.->|1 Wire Serial<br/>Breach Detection| B
     A ==>|Explaining<br/>Vulnerability| E
+    E -->|USB| C
+    C -->|USB| E
     
     style A fill:#ffc9c9
     style B fill:#b2f2bb
@@ -33,4 +35,3 @@ graph LR
     classDef blueTeam fill:#a5d8ff
     classDef secure fill:#ffec99
     classDef translation fill:#b2f2bb
-    

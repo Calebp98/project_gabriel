@@ -1,1 +1,22 @@
 .venv
+
+# Red vs Blue Exercise Generated Files
+red-team/findings.md
+red-team/analysis.md
+red-team/done.txt
+red-team/prompt.txt
+blue-team/patches.md
+blue-team/changes.md
+blue-team/done.txt
+blue-team/prompt.txt
+shared/turn.txt
+shared/round.txt
+shared/game_state.json
+logs/*.md
+logs/*.v
+logs/*.log
+
+# Build artifacts (already ignored, but keeping for reference)
+*.asc
+*.bin
+*.json

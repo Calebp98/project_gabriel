@@ -4,25 +4,9 @@
 # 12 MHz Clock
 set_io CLK 35
 
-# UART RX (from picoprobe - connect to picoprobe GPIO 3)
-# Using PMOD1A pin 3 (bottom row, first pin)
-set_io RX 3
+# UART TX (to picoprobe GPIO 5 RX - connect to picoprobe GPIO 5)
+# Using PMOD1A pin 2 (top row, second pin)
+set_io TX 2
 
-# Control output pin 4
-# Using PMOD1A pin 4 (iCEbreaker physical pin 4)
-set_io CONTROL_PIN 4
-
-# On-board LEDs for debugging
+# On-board LED for debugging (heartbeat)
 set_io LED1 11
-set_io LED2 37
-set_io LED3 39
-set_io LED4 40
-set_io LED5 41
-
-# Note: You can adjust the RX and CONTROL_PIN assignments based on
-# which PMOD pins you're actually using on your iCEbreaker.
-#
-# PMOD1A pins (top row): 4, 2, 47, 45
-# PMOD1A pins (bottom row): 3, 48, 46, 44
-# PMOD1B pins (top row): 43, 38, 34, 31
-# PMOD1B pins (bottom row): 42, 36, 32, 28

@@ -1,73 +1,81 @@
-// Top module for iCEbreaker UART control
-// Receives UART characters and controls output pin
-// 'Y' or 'y' -> pin LOW (0V)
-// 'N' or 'n' -> pin HIGH (3.3V)
+// Simplified top module - sends "HELLO\n" every 1 second
 
 module top (
-    input  wire CLK,        // 12 MHz clock on iCEbreaker
-    input  wire RX,         // UART RX from picoprobe
-    output wire CONTROL_PIN, // Output control pin (pin 4)
-    output wire LED1,       // Debug LED (optional)
-    output wire LED2,       // Debug LED (optional)
-    output wire LED3,       // Debug LED (optional)
-    output wire LED4,       // Debug LED (optional)
-    output wire LED5        // Debug LED (optional)
+    input  wire CLK,         // 12 MHz clock on iCEbreaker
+    output wire TX,          // UART TX to picoprobe
+    output wire LED1         // Debug LED
 );
 
-    // Internal signals
-    wire [7:0] rx_data;
-    wire rx_data_valid;
-    reg control_state = 1;  // Default HIGH (3.3V)
+    // Timer for 1 second interval: 12,000,000 clock cycles at 12 MHz
+    localparam SECOND_CYCLES = 26'd12_000_000;
 
-    // LED debug outputs
-    reg [4:0] led_state = 5'b00001;
+    // UART signals
+    reg [7:0] tx_data;
+    reg tx_data_valid;
+    wire tx_busy;
 
-    // UART receiver instance
-    uart_rx #(
+    // State machine
+    reg [2:0] send_index = 0;
+    reg [25:0] timer = 0;
+    reg sending = 0;
+    reg tx_busy_prev = 0;
+
+    // UART transmitter instance
+    uart_tx #(
         .CLOCK_FREQ(12_000_000),
         .BAUD_RATE(115200)
-    ) uart_receiver (
+    ) uart_transmitter (
         .clk(CLK),
         .rst(1'b0),
-        .rx(RX),
-        .data(rx_data),
-        .data_valid(rx_data_valid)
+        .data(tx_data),
+        .data_valid(tx_data_valid),
+        .tx(TX),
+        .busy(tx_busy)
     );
 
-    // Character processing logic
+    // Main logic
     always @(posedge CLK) begin
-        if (rx_data_valid) begin
-            case (rx_data)
-                8'h59,  // 'Y'
-                8'h79:  // 'y'
-                begin
-                    control_state <= 0;  // Set to LOW (0V)
-                    led_state <= 5'b10000;  // LED pattern for 'Y'
-                end
+        tx_data_valid <= 0;  // Default: no data to send
+        tx_busy_prev <= tx_busy;
 
-                8'h4E,  // 'N'
-                8'h6E:  // 'n'
-                begin
-                    control_state <= 1;  // Set to HIGH (3.3V)
-                    led_state <= 5'b00001;  // LED pattern for 'N'
-                end
+        if (!sending) begin
+            // Increment timer when not sending
+            timer <= timer + 1;
 
-                default: begin
-                    // Unknown character - blink all LEDs
-                    led_state <= 5'b11111;
+            // Start sending when 1 second has elapsed
+            if (timer >= SECOND_CYCLES) begin
+                timer <= 0;
+                send_index <= 0;
+                sending <= 1;
+            end
+        end else begin
+            // Sending message "HELLO\n"
+            // Detect falling edge of tx_busy (transmission complete)
+            if (tx_busy_prev && !tx_busy) begin
+                send_index <= send_index + 1;
+            end
+
+            // Send character when not busy and haven't just sent
+            if (!tx_busy && !tx_busy_prev) begin
+                if (send_index < 6) begin
+                    case (send_index)
+                        0: tx_data <= 8'h48;  // 'H'
+                        1: tx_data <= 8'h45;  // 'E'
+                        2: tx_data <= 8'h4C;  // 'L'
+                        3: tx_data <= 8'h4C;  // 'L'
+                        4: tx_data <= 8'h4F;  // 'O'
+                        5: tx_data <= 8'h0A;  // '\n'
+                    endcase
+                    tx_data_valid <= 1;
+                end else begin
+                    // Done sending
+                    sending <= 0;
                 end
-            endcase
+            end
         end
     end
 
-    // Output assignments
-    assign CONTROL_PIN = control_state;
-
-    // LED debug outputs (optional - shows received commands)
-    assign LED1 = led_state[0];
-    assign LED2 = led_state[1];
-    assign LED3 = led_state[2];
-    assign LED4 = led_state[3];
-    assign LED5 = led_state[4];
+    // Blink LED with the timer (heartbeat)
+    assign LED1 = timer[23];  // Blink at ~1.4 Hz
 
 endmodule

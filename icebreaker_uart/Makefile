@@ -1,10 +1,17 @@
 # Makefile for iCEbreaker UART project
 
+# Toolchain paths
+OSS_CAD_SUITE = /Users/cp/oss-cad-suite/bin
+YOSYS = $(OSS_CAD_SUITE)/yosys
+NEXTPNR = $(OSS_CAD_SUITE)/nextpnr-ice40
+ICEPACK = $(OSS_CAD_SUITE)/icepack
+ICEPROG = $(OSS_CAD_SUITE)/iceprog
+
 # Project name
 PROJ = uart_control
 
 # Source files
-VERILOG_FILES = top.v uart_rx.v
+VERILOG_FILES = top.v uart_tx.v
 
 # Pin constraints
 PCF = icebreaker.pcf
@@ -18,19 +25,19 @@ all: $(PROJ).bin
 
 # Synthesis
 $(PROJ).json: $(VERILOG_FILES)
-	yosys -p "synth_ice40 -top top -json $@" $(VERILOG_FILES)
+	$(YOSYS) -p "synth_ice40 -top top -json $@" $(VERILOG_FILES)
 
 # Place and route
 $(PROJ).asc: $(PROJ).json $(PCF)
-	nextpnr-ice40 --$(DEVICE) --package $(PACKAGE) --json $< --pcf $(PCF) --asc $@
+	$(NEXTPNR) --$(DEVICE) --package $(PACKAGE) --json $< --pcf $(PCF) --asc $@
 
 # Generate binary
 $(PROJ).bin: $(PROJ).asc
-	icepack $< $@
+	$(ICEPACK) $< $@
 
 # Program the FPGA
 prog: $(PROJ).bin
-	iceprog $<
+	$(ICEPROG) $<
 
 # Clean build files
 clean:

@@ -19,7 +19,7 @@ module top_test (
     // 'T' (0x54) XOR 0xBE = 0xEA
     localparam [7:0] ENC_BYTE_0 = 8'h9D;
     localparam [7:0] ENC_BYTE_1 = 8'hEC;
-     localparam [7:0] ENC_BYTE_2 = 8'hEA;
+    localparam [7:0] ENC_BYTE_2 = 8'hEA;
 
     // Slow down clock for visible LED behavior
     reg [23:0] counter = 0;

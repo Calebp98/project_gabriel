@@ -1,2 +1,6 @@
 .venv
 xor_cipher/*
+
+top_test.asc
+top_test.bin
+top_test.json

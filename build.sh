@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Add OSS CAD Suite to PATH
+export PATH="$HOME/oss-cad-suite/bin:$PATH"
+
 echo "=== FPGA Build Script: UART RX + Grammar FSM ==="
 echo ""
 

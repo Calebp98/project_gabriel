@@ -1,0 +1,6 @@
+{
+    "board": "rp2040:rp2040:rpipico",
+    "configuration": "flash=2097152_0,freq=125,opt=Small,rtti=Disabled,stackprotect=Disabled,exceptions=Disabled,dbgport=Disabled,dbglvl=None,usbstack=picosdk",
+    "sketch": "pico_dnp3_test.ino",
+    "port": "/dev/cu.usbmodem1301"
+}

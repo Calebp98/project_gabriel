@@ -1,0 +1,5 @@
+{
+    "arduino.path": "/Applications/Arduino IDE.app/Contents/MacOS/Arduino IDE",
+    "arduino.useArduinoCli": true,
+    "arduino.commandPath": "/Applications/Arduino IDE.app/Contents/Resources/app/lib/backend/resources/arduino-cli"
+}

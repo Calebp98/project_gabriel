@@ -112,4 +112,99 @@ module grammar_fsm (
         end
         // If no new data, maintain current accept/reject signals
     end
+
+`ifdef FORMAL
+    // Formal verification properties
+
+    // Initial state assumptions
+    initial assume(state == S_IDLE);
+    initial assume(accept == 0);
+    initial assume(reject == 0);
+
+    // Property 1: Mutual exclusion - never accept and reject simultaneously
+    always @(posedge clk) begin
+        assert(!(accept && reject));
+    end
+
+    // Property 2: Valid states only
+    always @(posedge clk) begin
+        assert(state <= S_REJECT);
+    end
+
+    // Property 3: Accept only in S_CAT state
+    always @(posedge clk) begin
+        if (accept)
+            assert(state == S_CAT || state == S_IDLE);
+    end
+
+    // Property 4: Reject only in S_REJECT state
+    always @(posedge clk) begin
+        if (reject)
+            assert(state == S_REJECT || state == S_IDLE);
+    end
+
+    // Property 5: Correct sequence C->A->T leads to accept
+    reg [1:0] seq_step = 0;
+    reg seen_accept = 0;
+
+    always @(posedge clk) begin
+        if (rst) begin
+            seq_step <= 0;
+            seen_accept <= 0;
+        end else if (data_valid) begin
+            if (seq_step == 0 && data_in == CHAR_C && state == S_IDLE)
+                seq_step <= 1;
+            else if (seq_step == 1 && data_in == CHAR_A && state == S_C)
+                seq_step <= 2;
+            else if (seq_step == 2 && data_in == CHAR_T && state == S_CA)
+                seq_step <= 3;
+
+            if (seq_step == 3 && accept)
+                seen_accept <= 1;
+        end
+    end
+
+    always @(posedge clk) begin
+        if (seq_step == 3)
+            assert(accept || seen_accept);
+    end
+
+    // Property 6: Wrong character in IDLE leads to reject (check next cycle)
+    reg bad_char_in_idle = 0;
+    always @(posedge clk) begin
+        if (rst) begin
+            bad_char_in_idle <= 0;
+        end else begin
+            if (data_valid && state == S_IDLE && data_in != CHAR_C)
+                bad_char_in_idle <= 1;
+            else if (bad_char_in_idle)
+                bad_char_in_idle <= 0;
+        end
+    end
+
+    always @(posedge clk) begin
+        if (bad_char_in_idle && !rst)
+            assert(reject);
+    end
+
+    // Cover properties - verify all states are reachable
+    always @(posedge clk) begin
+        cover(state == S_IDLE);
+        cover(state == S_C);
+        cover(state == S_CA);
+        cover(state == S_CAT && accept);
+        cover(state == S_REJECT && reject);
+    end
+
+    // Cover property - verify we can accept after seeing CAT
+    always @(posedge clk) begin
+        cover(accept);
+    end
+
+    // Cover property - verify we can reject invalid input
+    always @(posedge clk) begin
+        cover(reject);
+    end
+`endif
+
 endmodule

@@ -11,18 +11,27 @@ The design consists of three main components: a UART receiver module that handle
 ## Hardware Requirements
 
 - iCEBreaker FPGA board (Lattice iCE40UP5K)
-- Raspberry Pi Pico
-- 3 jumper wires
-- USB cables for both boards
+- Raspberry Pi Pico (2x for SWD programming setup)
+- Jumper wires
+- USB cables
 
 ## Project Structure
 
+### FPGA Components
 - `uart_rx.v` - UART receiver module (115200 baud, 8N1)
 - `grammar_fsm.v` - Finite state machine for pattern validation
 - `top_test.v` - Top-level module integrating UART and FSM
 - `icebreaker.pcf` - Pin constraints for iCEBreaker board
 - `build.sh` - Build script using yosys, nextpnr, and icepack
 - `pico_uart_test/` - Arduino test code for Raspberry Pi Pico
+
+### SWD Programming (PicoProbe)
+- `QUICKSTART_PICOPROBE.md` - **5-minute quick start guide**
+- `PICOPROBE_SETUP.md` - Complete setup and troubleshooting guide
+- `flash_with_picoprobe.sh` - Easy script to flash firmware via PicoProbe
+- `openocd.cfg` - OpenOCD configuration file for PicoProbe
+- `pico_swd_bridge/` - Legacy custom SWD bridge (deprecated - use PicoProbe instead)
+- `swd_programmer/` - Legacy Python SWD library (deprecated - use OpenOCD instead)
 
 ## Building
 
@@ -45,3 +54,18 @@ iceprog top_test.bin
 - FPGA LED_GREEN (pin 37, active-low) - accept state
 - FPGA LED_RED (pin 11, active-low) - reject state
 - FPGA LED_RX (pin 26, active-high) - data received indicator
+
+## Programming Pico via SWD
+
+Program a Raspberry Pi Pico via SWD (Serial Wire Debug) without using the BOOTSEL button.
+
+**New to PicoProbe? Start here:** [QUICKSTART_PICOPROBE.md](QUICKSTART_PICOPROBE.md) (5 minute setup)
+
+**Complete documentation:** [PICOPROBE_SETUP.md](PICOPROBE_SETUP.md)
+
+### Quick Command
+```bash
+./flash_with_picoprobe.sh firmware.elf
+```
+
+This uses the official PicoProbe solution, which is much more robust than a custom bridge and provides full debugging capabilities.

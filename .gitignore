@@ -3,3 +3,5 @@
 *.asc
 *.bin
 top_*.json
+
+venv

@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-echo "=== FPGA Build Script: UART RX + Grammar FSM ==="
+echo "=== FPGA Build Script: UART RX + XOR Cipher + Grammar FSM ==="
 echo ""
 
 echo "Step 1: Synthesizing design with Yosys..."
-yosys -p "synth_ice40 -top top_test -json top_test.json" top_test.v uart_rx.v grammar_fsm.v
+yosys -p "synth_ice40 -top top_test -json top_test.json" top_test.v uart_rx.v xor_cipher.v grammar_fsm.v
 
 echo ""
 echo "Step 2: Place and route with nextpnr..."

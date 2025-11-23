@@ -5,11 +5,10 @@
 # Builds the iCEbreaker FPGA project (UART control with authentication)
 #
 # Usage:
-#   ./scripts/build_icebreaker.sh [--clean] [--flash]
+#   ./scripts/build_icebreaker.sh [--clean]
 #
 # Options:
 #   --clean    Run 'make clean' before building
-#   --flash    Flash the FPGA after building (runs 'make prog')
 #
 
 set -e  # Exit on error
@@ -20,14 +19,10 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Parse arguments
 CLEAN=false
-FLASH=false
 for arg in "$@"; do
     case $arg in
         --clean)
             CLEAN=true
-            ;;
-        --flash)
-            FLASH=true
             ;;
     esac
 done
@@ -54,10 +49,3 @@ make
 
 echo -e "${GREEN}✓ Build complete!${NC}"
 echo -e "Output: icebreaker/uart_control.bin"
-
-# Flash if requested
-if [ "$FLASH" = true ]; then
-    echo -e "\n${BLUE}=== Flashing iCEbreaker FPGA ===${NC}"
-    make prog
-    echo -e "${GREEN}✓ FPGA flashed successfully!${NC}"
-fi

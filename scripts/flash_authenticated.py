@@ -13,7 +13,7 @@ Usage:
     python3 flash_authenticated.py <elf_file> [serial_port]
 
 Example:
-    python3 flash_authenticated.py pico-examples/build/blink/blink.elf /dev/tty.usbmodem14101
+    python3 flash_authenticated.py ../blink/build/blink.elf /dev/tty.usbmodem14101
 """
 
 import sys
@@ -126,7 +126,7 @@ def flash_pico(elf_file):
 def main():
     if len(sys.argv) < 2:
         print("Usage: python3 flash_authenticated.py <elf_file> [serial_port]")
-        print("Example: python3 flash_authenticated.py pico-examples/build/blink/blink.elf")
+        print("Example: python3 flash_authenticated.py ../blink/build/blink.elf")
         sys.exit(1)
 
     elf_file = sys.argv[1]

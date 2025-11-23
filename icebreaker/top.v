@@ -241,4 +241,95 @@ module top (
     // Control pin output
     assign CONTROL_PIN = control_state;
 
+`ifdef FORMAL
+    // Formal verification properties
+
+    // Track that we're past the first cycle
+    reg past_valid = 0;
+    always @(posedge CLK) begin
+        past_valid <= 1;
+    end
+
+    // Property 1: State is always valid
+    always @(posedge CLK) begin
+        assert(state == STATE_IDLE || state == STATE_SEND_CHALLENGE ||
+               state == STATE_WAIT_RESPONSE || state == STATE_VERIFY);
+    end
+
+    // Property 2: Send index stays within bounds during SEND_CHALLENGE
+    always @(posedge CLK) begin
+        if (state == STATE_SEND_CHALLENGE)
+            assert(send_index <= 10);
+    end
+
+    // Property 3: Receive index stays within bounds during WAIT_RESPONSE
+    always @(posedge CLK) begin
+        if (state == STATE_WAIT_RESPONSE)
+            assert(recv_index <= 10);
+    end
+
+    // Property 4: Control pin matches control_state
+    always @(posedge CLK) begin
+        assert(CONTROL_PIN == control_state);
+    end
+
+    // Property 5: Expected response calculation is correct
+    always @(posedge CLK) begin
+        assert(expected_response == ((challenge_snapshot ^ SECRET_KEY) + SECRET_KEY));
+    end
+
+    // Property 6: LED blink rate depends on authentication status
+    always @(posedge CLK) begin
+        if (authenticated)
+            assert(LED1 == auth_timer[20]);
+        else
+            assert(LED1 == timer[23]);
+    end
+
+    // Property 7: In IDLE state, send_index should be 0 after initialization
+    always @(posedge CLK) begin
+        if (past_valid && state == STATE_IDLE && $past(state) == STATE_IDLE)
+            assert(send_index == 0);
+    end
+
+    // Property 8: In VERIFY state, should transition back to IDLE
+    always @(posedge CLK) begin
+        if (past_valid && $past(state) == STATE_VERIFY)
+            assert(state == STATE_IDLE);
+    end
+
+    // Property 9: Timer increments continuously
+    always @(posedge CLK) begin
+        if (past_valid)
+            assert(timer == $past(timer) + 1);
+    end
+
+    // Property 10: Auth timer increments only when authenticated
+    always @(posedge CLK) begin
+        if (past_valid && authenticated)
+            assert(auth_timer == $past(auth_timer) + 1);
+    end
+
+    // Cover properties - verify we can reach all states
+    always @(posedge CLK) begin
+        cover(state == STATE_IDLE);
+        cover(state == STATE_SEND_CHALLENGE);
+        cover(state == STATE_WAIT_RESPONSE);
+        cover(state == STATE_VERIFY);
+        cover(authenticated);
+        cover(control_state == 0);
+        cover(control_state == 1);
+    end
+
+    // Cover property - verify we can complete authentication
+    reg seen_auth = 0;
+    always @(posedge CLK) begin
+        if (authenticated)
+            seen_auth <= 1;
+    end
+    always @(posedge CLK) begin
+        cover(seen_auth);
+    end
+`endif
+
 endmodule

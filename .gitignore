@@ -10,7 +10,8 @@ venv
 
 build
 
-# formal verification outpus
+# formal verification outputs
 icebreaker/uart_tx/*
 icebreaker/uart_rx/*
 icebreaker/lfsr/*
+icebreaker/top/*

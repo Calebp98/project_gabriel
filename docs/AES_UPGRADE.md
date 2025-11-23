@@ -22,12 +22,13 @@ The iCEbreaker challenge-response authentication has been upgraded from a weak c
 
 #### New Files Added:
 - [icebreaker/aes_wrapper.v](../icebreaker/aes_wrapper.v) - Simple wrapper around AES core
-- [icebreaker/aes_core.v](../icebreaker/aes_core.v) - Main AES-128/256 core (from secworks/aes)
-- [icebreaker/aes_encipher_block.v](../icebreaker/aes_encipher_block.v) - Encryption logic
-- [icebreaker/aes_decipher_block.v](../icebreaker/aes_decipher_block.v) - Decryption logic (unused but required)
-- [icebreaker/aes_key_mem.v](../icebreaker/aes_key_mem.v) - Key expansion memory
-- [icebreaker/aes_sbox.v](../icebreaker/aes_sbox.v) - S-box for encryption
-- [icebreaker/aes_inv_sbox.v](../icebreaker/aes_inv_sbox.v) - Inverse S-box (unused but required)
+- [external/secworks_aes/](../external/secworks_aes/) - AES-128/256 core library (from secworks/aes)
+  - `src/rtl/aes_core.v` - Main AES core
+  - `src/rtl/aes_encipher_block.v` - Encryption logic
+  - `src/rtl/aes_decipher_block.v` - Decryption logic (unused but required)
+  - `src/rtl/aes_key_mem.v` - Key expansion memory
+  - `src/rtl/aes_sbox.v` - S-box for encryption
+  - `src/rtl/aes_inv_sbox.v` - Inverse S-box (unused but required)
 - [icebreaker/top_aes.v](../icebreaker/top_aes.v) - **New top-level module with AES-128**
 
 #### Modified Files:
@@ -233,10 +234,15 @@ The AES implementation is based on **secworks/aes**:
 
 ### Build Fails with "module not found"
 
-Make sure all AES files are in [icebreaker/](../icebreaker/):
+Make sure the AES library exists in [external/secworks_aes/](../external/secworks_aes/):
 ```bash
-ls icebreaker/aes_*.v
-# Should show: aes_core.v, aes_wrapper.v, aes_encipher_block.v, etc.
+ls external/secworks_aes/src/rtl/aes_*.v
+# Should show: aes_core.v, aes_encipher_block.v, aes_decipher_block.v, etc.
+```
+
+And that the custom wrapper exists:
+```bash
+ls icebreaker/aes_wrapper.v
 ```
 
 ### Python ImportError: No module named 'Crypto'
@@ -274,22 +280,26 @@ pip3 install pycryptodome
 ```
 project_gabriel/
 ├── icebreaker/
-│   ├── aes_wrapper.v          [NEW] Simple AES-128 wrapper
-│   ├── aes_core.v             [NEW] Main AES core
-│   ├── aes_encipher_block.v   [NEW] Encryption rounds
-│   ├── aes_decipher_block.v   [NEW] Decryption (unused)
-│   ├── aes_key_mem.v          [NEW] Key expansion
-│   ├── aes_sbox.v             [NEW] S-box
-│   ├── aes_inv_sbox.v         [NEW] Inverse S-box
+│   ├── aes_wrapper.v          [NEW] Simple AES-128 wrapper (custom)
 │   ├── top_aes.v              [NEW] Updated top module with AES
 │   ├── top_old.v              [BACKUP] Original weak crypto
 │   ├── lfsr.v                 [MODIFIED] Added parameter
-│   ├── Makefile               [MODIFIED] Added AES modules
-│   └── test_auth.py           [MODIFIED] AES-128 client
+│   ├── Makefile               [MODIFIED] References external AES library
+│   ├── test_auth.py           [MODIFIED] AES-128 client
+│   └── alternative_aes/       [NEW] Alternative AES implementations (unused)
+│       ├── aes_enc128.v       Compact AES-128 implementation
+│       └── aes_simple.v       Simplified AES implementation
 ├── scripts/
 │   └── flash_authenticated.py [MODIFIED] AES-128 client
 ├── external/
-│   └── secworks_aes/          [NEW] Full AES repository
+│   └── secworks_aes/          [NEW] Full AES repository (library)
+│       └── src/rtl/           AES core modules (referenced by Makefile)
+│           ├── aes_core.v
+│           ├── aes_encipher_block.v
+│           ├── aes_decipher_block.v
+│           ├── aes_key_mem.v
+│           ├── aes_sbox.v
+│           └── aes_inv_sbox.v
 └── docs/
     └── AES_UPGRADE.md         [NEW] This file
 ```

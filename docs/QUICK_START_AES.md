@@ -96,16 +96,20 @@ print(response.hex().upper())
 
 ## File Checklist
 
-Required files in [icebreaker/](../icebreaker/):
+Required files:
+
+**In [icebreaker/](../icebreaker/):**
 - ✅ [top_aes.v](../icebreaker/top_aes.v) - New top module
-- ✅ [aes_wrapper.v](../icebreaker/aes_wrapper.v) - Simple wrapper
-- ✅ [aes_core.v](../icebreaker/aes_core.v) - AES core
-- ✅ [aes_encipher_block.v](../icebreaker/aes_encipher_block.v) - Encryption
-- ✅ [aes_decipher_block.v](../icebreaker/aes_decipher_block.v) - Decryption
-- ✅ [aes_key_mem.v](../icebreaker/aes_key_mem.v) - Key expansion
-- ✅ [aes_sbox.v](../icebreaker/aes_sbox.v) - S-box
-- ✅ [aes_inv_sbox.v](../icebreaker/aes_inv_sbox.v) - Inverse S-box
+- ✅ [aes_wrapper.v](../icebreaker/aes_wrapper.v) - Custom AES wrapper
 - ✅ [uart_tx.v](../icebreaker/uart_tx.v), [uart_rx.v](../icebreaker/uart_rx.v), [lfsr.v](../icebreaker/lfsr.v) - Supporting modules
+
+**In [external/secworks_aes/src/rtl/](../external/secworks_aes/src/rtl/):**
+- ✅ aes_core.v - AES core (from library)
+- ✅ aes_encipher_block.v - Encryption
+- ✅ aes_decipher_block.v - Decryption
+- ✅ aes_key_mem.v - Key expansion
+- ✅ aes_sbox.v - S-box
+- ✅ aes_inv_sbox.v - Inverse S-box
 
 ---
 

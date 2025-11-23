@@ -10,10 +10,18 @@ ICEPROG = $(OSS_CAD_SUITE)/iceprog
 # Project name
 PROJ = uart_control
 
+# AES library path
+AES_RTL = ../external/secworks_aes/src/rtl
+
 # Source files
 VERILOG_FILES = top.v uart_tx.v uart_rx.v lfsr.v \
-                aes_wrapper.v aes_core.v aes_encipher_block.v aes_decipher_block.v \
-                aes_key_mem.v aes_sbox.v aes_inv_sbox.v
+                aes_wrapper.v \
+                $(AES_RTL)/aes_core.v \
+                $(AES_RTL)/aes_encipher_block.v \
+                $(AES_RTL)/aes_decipher_block.v \
+                $(AES_RTL)/aes_key_mem.v \
+                $(AES_RTL)/aes_sbox.v \
+                $(AES_RTL)/aes_inv_sbox.v
 
 # Pin constraints
 PCF = icebreaker.pcf

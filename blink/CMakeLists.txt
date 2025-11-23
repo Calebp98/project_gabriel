@@ -16,6 +16,11 @@ add_executable(blink
     blink.c
     )
 
+# Set LED delay if provided
+if(DEFINED LED_DELAY_MS)
+    target_compile_definitions(blink PRIVATE LED_DELAY_MS=${LED_DELAY_MS})
+endif()
+
 # pull in common dependencies
 target_link_libraries(blink pico_stdlib)
 

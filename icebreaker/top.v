@@ -22,8 +22,8 @@ module top (
 
     // State machine
     localparam STATE_IDLE = 3'd0;
-    localparam STATE_AES_START = 3'd1;
-    localparam STATE_AES_WAIT = 3'd2;
+    localparam STATE_CHACHA_START = 3'd1;
+    localparam STATE_CHACHA_WAIT = 3'd2;
     localparam STATE_SEND_CHALLENGE = 3'd3;
     localparam STATE_WAIT_RESPONSE = 3'd4;
     localparam STATE_VERIFY = 3'd5;
@@ -116,7 +116,7 @@ module top (
                         lfsr_out[3], lfsr_out[2], lfsr_out[1], lfsr_out[0]};
 
     //----------------------------------------------------------------
-    // AES wrapper for challenge-response verification
+    // ChaCha20 for challenge-response verification
     //----------------------------------------------------------------
     chacha20_compact chacha_inst (
         .clk(CLK),
@@ -198,20 +198,20 @@ module top (
                     timer <= 0;
                     challenge_snapshot <= challenge;  // Capture current challenge
                     send_index <= 0;
-                    state <= STATE_AES_START;
+                    state <= STATE_CHACHA_START;
                 end
             end
 
-            STATE_AES_START: begin
-                // Start AES encryption of challenge
+            STATE_CHACHA_START: begin
+                // Start ChaCha20 encryption of challenge
                 chacha_start <= 1;
-                state <= STATE_AES_WAIT;
+                state <= STATE_CHACHA_WAIT;
             end
 
-            STATE_AES_WAIT: begin
-                // Wait for AES encryption to complete
+            STATE_CHACHA_WAIT: begin
+                // Wait for ChaCha20 encryption to complete
                 if (chacha_valid) begin
-                    // AES done, now send challenge
+                    // ChaCha20 done, now send challenge
                     state <= STATE_SEND_CHALLENGE;
                 end
             end
@@ -285,7 +285,7 @@ module top (
                         received_response[(31-j)*4 +: 4] = hex_to_nibble(response_buffer[5+j]);
                     end
 
-                    // Compare with expected AES response
+                    // Compare with expected ChaCha20 response
                     if (received_response == chacha_output) begin
                         authenticated <= 1;  // Success!
                         auth_timer <= 0;

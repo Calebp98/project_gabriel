@@ -8,7 +8,7 @@ ICEPACK = $(OSS_CAD_SUITE)/icepack
 ICEPROG = $(OSS_CAD_SUITE)/iceprog
 
 # Project name
-PROJ = uart_control
+PROJ = gabriel
 
 # Crypto library paths
 AES_RTL = ../external/secworks_aes/src/rtl

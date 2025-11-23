@@ -44,7 +44,7 @@ sudo apt-get install fpga-icestorm yosys nextpnr-ice40
 # Build the bitstream
 make
 
-# This will generate uart_control.bin
+# This will generate gabriel.bin
 ```
 
 ## Programming the iCEbreaker
@@ -54,7 +54,7 @@ make
 make prog
 
 # Or manually:
-iceprog uart_control.bin
+iceprog gabriel.bin
 ```
 
 ## Usage

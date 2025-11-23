@@ -48,4 +48,4 @@ echo -e "${BLUE}Running synthesis and place & route...${NC}"
 make
 
 echo -e "${GREEN}✓ Build complete!${NC}"
-echo -e "Output: icebreaker/uart_control.bin"
+echo -e "Output: icebreaker/gabriel.bin"

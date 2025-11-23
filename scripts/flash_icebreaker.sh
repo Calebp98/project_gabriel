@@ -24,7 +24,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Check if bitstream exists
-if [ ! -f "$PROJECT_ROOT/icebreaker/uart_control.bin" ]; then
+if [ ! -f "$PROJECT_ROOT/icebreaker/gabriel.bin" ]; then
     echo -e "${RED}Error: Bitstream not found!${NC}"
     echo -e "${YELLOW}Run './scripts/build_icebreaker.sh' first to build the bitstream.${NC}"
     exit 1

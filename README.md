@@ -2,6 +2,8 @@
 
 **Claude Code for FPGA Formal Verification**
 
+![Project Gabriel](gabriel.svg)
+
 An exploration of using AI (Claude Code) to accelerate the development of formally verified FPGA security systems through hardware-software feedback loops and adversarial testing.
 
 ## Project Overview

@@ -99,4 +99,99 @@ module uart_rx #(
         end
     end
 
+`ifdef FORMAL
+    // Formal verification properties
+
+    // Track that we're past the first cycle
+    reg past_valid = 0;
+    always @(posedge clk) begin
+        past_valid <= 1;
+    end
+
+    // Property 1: State is always valid
+    always @(posedge clk) begin
+        assert(state == IDLE || state == START || state == DATA || state == STOP);
+    end
+
+    // Property 2: Bit index never exceeds 7
+    always @(posedge clk) begin
+        assert(bit_index <= 7);
+    end
+
+    // Property 3: Clock count stays within bounds
+    always @(posedge clk) begin
+        assert(clk_count < CLKS_PER_BIT);
+    end
+
+    // Property 4: Data valid is only asserted for one cycle
+    always @(posedge clk) begin
+        if (!rst && past_valid && $past(data_valid) && !$past(rst))
+            assert(!data_valid);
+    end
+
+    // Property 5: Data valid only asserted in transition from STOP to IDLE
+    always @(posedge clk) begin
+        if (!rst && data_valid && past_valid)
+            assert($past(state) == STOP);
+    end
+
+    // Property 6: Reset behavior
+    always @(posedge clk) begin
+        if (past_valid && $past(rst)) begin
+            assert(state == IDLE);
+            assert(data_valid == 0);
+            assert(clk_count == 0);
+            assert(bit_index == 0);
+            assert(data == 0);
+        end
+    end
+
+    // Property 7: In IDLE state, counters should be reset
+    always @(posedge clk) begin
+        if (!rst && state == IDLE) begin
+            assert(clk_count == 0);
+            assert(bit_index == 0);
+        end
+    end
+
+    // Property 8: Bit index increments correctly in DATA state
+    always @(posedge clk) begin
+        if (!rst && past_valid && !$past(rst) && $past(state) == DATA && state == DATA) begin
+            if ($past(clk_count) == CLKS_PER_BIT - 1) begin
+                if ($past(bit_index) == 7)
+                    assert(bit_index == 0);  // Will transition to STOP next
+                else
+                    assert(bit_index == $past(bit_index) + 1);
+            end else begin
+                assert(bit_index == $past(bit_index));
+            end
+        end
+    end
+
+    // Property 9: RX synchronization chain
+    always @(posedge clk) begin
+        if (past_valid && !$past(rst))
+            assert(rx_sync2 == $past(rx_sync1));
+    end
+
+    // Cover properties - verify we can receive data
+    always @(posedge clk) begin
+        cover(state == IDLE);
+        cover(state == START);
+        cover(state == DATA);
+        cover(state == STOP);
+        cover(data_valid);
+    end
+
+    // Cover property - complete byte reception
+    reg seen_byte = 0;
+    always @(posedge clk) begin
+        if (data_valid)
+            seen_byte <= 1;
+    end
+    always @(posedge clk) begin
+        cover(seen_byte);
+    end
+`endif
+
 endmodule

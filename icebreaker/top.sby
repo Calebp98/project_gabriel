@@ -1,0 +1,19 @@
+[options]
+mode bmc
+depth 30
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal uart_rx.v
+read -formal uart_tx.v
+read -formal lfsr.v
+read -formal top.v
+prep -top top
+
+[files]
+uart_rx.v
+uart_tx.v
+lfsr.v
+top.v

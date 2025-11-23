@@ -38,17 +38,20 @@ def calculate_response(challenge):
     response = cipher.encrypt(b'\x00' * 16)
     return response
 
-def authenticate(ser, timeout=15):
+def authenticate(ser, timeout=5):
     """
-    Wait for challenge and authenticate with the iCEbreaker.
+    Authenticate with the iCEbreaker using client-initiated handshake.
     Returns True if authentication succeeds, False otherwise.
     """
-    print("[AUTH] Waiting for challenge from iCEbreaker...")
-    print("[AUTH] (Challenges are sent every 5 seconds, so this may take a moment...)")
+    print("[AUTH] Requesting challenge from iCEbreaker...")
 
     # Flush any stale data from the serial buffer
     ser.reset_input_buffer()
     time.sleep(0.1)
+
+    # Send AUTH request
+    ser.write(b"AUTH\n")
+    print("[AUTH] Sent: AUTH")
 
     start_time = time.time()
 
@@ -73,11 +76,20 @@ def authenticate(ser, timeout=15):
                         response_msg = f"RESP:{response_hex}\n"
                         ser.write(response_msg.encode('ascii'))
                         print(f"[AUTH] Sent response: {response_msg.strip()}")
-                        print("[AUTH] ✓ Authentication successful!")
 
-                        # Wait a bit for authentication to process
-                        time.sleep(0.2)
-                        return True
+                        # Wait for OK or FAIL acknowledgment
+                        ack_line = ser.readline().decode('ascii', errors='ignore').strip()
+                        print(f"[AUTH] Received: {ack_line}")
+
+                        if ack_line == "OK":
+                            print("[AUTH] ✓ Authentication successful!")
+                            return True
+                        elif ack_line == "FAIL":
+                            print("[AUTH] ✗ Authentication failed - wrong response")
+                            return False
+                        else:
+                            print(f"[AUTH] ✗ Unexpected acknowledgment: {ack_line}")
+                            return False
                     except ValueError:
                         print(f"[AUTH] Invalid challenge format: {line}")
                         return False
@@ -168,21 +180,23 @@ def main():
 
         print("[INFO] Connected to iCEbreaker\n")
 
-        # Step 1: Authenticate with iCEbreaker
+        # Step 1: Authenticate and send 'Y' to enable programming (CONTROL_PIN = 0V)
+        print("[INFO] Authenticating to enable programming...")
         if not authenticate(ser):
             print("\n[ERROR] Authentication failed. Exiting.")
             ser.close()
             sys.exit(1)
-
-        # Step 2: Send 'Y' to enable programming (CONTROL_PIN = 0V)
-        print()
         send_control_command(ser, 'Y')
 
-        # Step 3: Flash the target Pico
+        # Step 2: Flash the target Pico
         success = flash_pico(elf_file)
 
-        # Step 4: Send 'N' to disable programming (CONTROL_PIN = 3.3V)
-        print()
+        # Step 3: Re-authenticate and send 'N' to disable programming (CONTROL_PIN = 3.3V)
+        print("\n[INFO] Authenticating to disable programming...")
+        if not authenticate(ser):
+            print("\n[ERROR] Re-authentication failed. Exiting.")
+            ser.close()
+            sys.exit(1)
         send_control_command(ser, 'N')
 
         # Close serial connection

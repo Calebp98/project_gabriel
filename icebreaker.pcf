@@ -1,8 +1,0 @@
-# Pin constraints for iCEBreaker FPGA
-# RX pin set to pin 3 as specified
-
-set_io CLK 35          # 12 MHz clock
-set_io RX_PIN 3        # PMOD1A_1 - UART RX input
-set_io LED_RED 11      # Built-in red LED
-set_io LED_GREEN 37    # Built-in green LED
-set_io LED_RX 26       # Built-in red LED (RX activity)

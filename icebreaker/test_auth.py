@@ -21,11 +21,14 @@ import threading
 import queue
 
 # Secret key (must match the one in top.v)
-SECRET_KEY = 0xA5C3
+SECRET_KEY = bytes.fromhex('A5C3DEADBEEFCAFE1337FACEB00BC0DE')
 
 def compute_response(challenge):
-    """Compute response from challenge using simple hash function"""
-    return ((challenge ^ SECRET_KEY) + SECRET_KEY) & 0xFFFF
+    """Compute response from challenge using AES-128"""
+    from Crypto.Cipher import AES
+    cipher = AES.new(SECRET_KEY, AES.MODE_ECB)
+    response = cipher.encrypt(challenge)
+    return response
 
 def read_serial(ser, msg_queue):
     """Background thread to read serial data"""
@@ -47,16 +50,23 @@ def handle_challenge(ser, challenge_line):
         print(f"[ERROR] Expected 'CHAL:XXXX', got '{challenge_line}'")
         return False
 
-    challenge_str = challenge_line.split(':')[1]
-    challenge = int(challenge_str, 16)
-    print(f"[AUTH] Challenge: 0x{challenge:04X}")
+    challenge_str = challenge_line.split(':')[1].strip()  # Get hex string after 'CHAL:'
 
-    # Compute response
+    # Convert hex string to bytes (128-bit = 32 hex chars = 16 bytes)
+    try:
+        challenge = bytes.fromhex(challenge_str)
+        print(f"[AUTH] Challenge: {challenge_str}")
+    except ValueError as e:
+        print(f"[ERROR] Invalid challenge hex: {e}")
+        return False
+
+    # Compute response using AES-128
     response = compute_response(challenge)
-    print(f"[AUTH] Response: 0x{response:04X}")
+    response_hex = response.hex().upper()
+    print(f"[AUTH] Response:  {response_hex}")
 
     # Send response
-    response_msg = f"RESP:{response:04X}\n"
+    response_msg = f"RESP:{response_hex}\n"
     ser.write(response_msg.encode('ascii'))
     print(f"[AUTH] ✓ Authenticated!\n")
     return True

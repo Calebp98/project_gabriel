@@ -2,15 +2,14 @@
 // Generates pseudo-random numbers for challenge generation
 // Uses polynomial x^16 + x^14 + x^13 + x^11 + 1 (maximal length)
 
-module lfsr (
+module lfsr #(
+    parameter SEED = 16'hACE1  // "ACE1" for iCEbreaker :)
+)(
     input wire clk,
     input wire rst,
     input wire enable,
     output reg [15:0] random
 );
-
-    // Seed value (non-zero required for LFSR)
-    localparam SEED = 16'hACE1;  // "ACE1" for iCEbreaker :)
 
     // Initialize to seed value
     initial random = SEED;

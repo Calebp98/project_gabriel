@@ -23,11 +23,14 @@ import time
 import glob
 
 # Secret key (must match the one in top.v)
-SECRET_KEY = 0xA5C3
+SECRET_KEY = bytes.fromhex('A5C3DEADBEEFCAFE1337FACEB00BC0DE')
 
 def calculate_response(challenge):
-    """Calculate the expected response for a given challenge."""
-    return ((challenge ^ SECRET_KEY) + SECRET_KEY) & 0xFFFF
+    """Calculate the expected response for a given challenge using AES-128."""
+    from Crypto.Cipher import AES
+    cipher = AES.new(SECRET_KEY, AES.MODE_ECB)
+    response = cipher.encrypt(challenge)
+    return response
 
 def authenticate(ser, timeout=15):
     """
@@ -52,14 +55,16 @@ def authenticate(ser, timeout=15):
                 print(f"[AUTH] Received: {line}")
 
                 if line.startswith('CHAL:'):
-                    challenge_hex = line[5:9]
+                    challenge_hex = line[5:37]  # 32 hex chars for 128-bit challenge
                     try:
-                        challenge = int(challenge_hex, 16)
-                        print(f"[AUTH] Received challenge: 0x{challenge:04X}")
+                        # Convert hex string to 16 bytes
+                        challenge = bytes.fromhex(challenge_hex)
+                        print(f"[AUTH] Received challenge: {challenge_hex}")
 
-                        # Calculate and send response
+                        # Calculate and send response using AES-128
                         response = calculate_response(challenge)
-                        response_msg = f"RESP:{response:04X}\n"
+                        response_hex = response.hex().upper()
+                        response_msg = f"RESP:{response_hex}\n"
                         ser.write(response_msg.encode('ascii'))
                         print(f"[AUTH] Sent response: {response_msg.strip()}")
                         print("[AUTH] ✓ Authentication successful!")

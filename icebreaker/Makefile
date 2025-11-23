@@ -11,7 +11,9 @@ ICEPROG = $(OSS_CAD_SUITE)/iceprog
 PROJ = uart_control
 
 # Source files
-VERILOG_FILES = top.v uart_tx.v uart_rx.v lfsr.v
+VERILOG_FILES = top.v uart_tx.v uart_rx.v lfsr.v \
+                aes_wrapper.v aes_core.v aes_encipher_block.v aes_decipher_block.v \
+                aes_key_mem.v aes_sbox.v aes_inv_sbox.v
 
 # Pin constraints
 PCF = icebreaker.pcf

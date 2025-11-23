@@ -16,6 +16,11 @@
 #define LED_DELAY_MS 200
 #endif
 
+// Define the external GPIO pin to control (set to -1 to disable)
+#ifndef EXTERNAL_LED_PIN
+#define EXTERNAL_LED_PIN 16
+#endif
+
 // Perform initialisation
 int pico_led_init(void) {
 #if defined(PICO_DEFAULT_LED_PIN)
@@ -23,11 +28,21 @@ int pico_led_init(void) {
     // so we can use normal GPIO functionality to turn the led on and off
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
-    return PICO_OK;
 #elif defined(CYW43_WL_GPIO_LED_PI3N)
     // For Pico W devices we need to initialise the driver etc
-    return cyw43_arch_init();
+    int rc = cyw43_arch_init();
+    if (rc != PICO_OK) {
+        return rc;
+    }
 #endif
+
+    // Initialize external LED pin if defined
+#if EXTERNAL_LED_PIN >= 0
+    gpio_init(EXTERNAL_LED_PIN);
+    gpio_set_dir(EXTERNAL_LED_PIN, GPIO_OUT);
+#endif
+
+    return PICO_OK;
 }
 
 // Turn the led on or off
@@ -38,6 +53,11 @@ void pico_set_led(bool led_on) {
 #elif defined(CYW43_WL_GPIO_LED_PIN)
     // Ask the wifi "driver" to set the GPIO on or off
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, led_on);
+#endif
+
+    // Control external LED pin if defined
+#if EXTERNAL_LED_PIN >= 0
+    gpio_put(EXTERNAL_LED_PIN, led_on);
 #endif
 }
 

@@ -40,8 +40,17 @@ module top (
     // Challenge/response (128-bit)
     wire [127:0] challenge;
     reg [127:0] challenge_snapshot = 0;  // Snapshot of challenge when sent
-    wire [127:0] expected_response = (challenge_snapshot ^ SECRET_KEY) + SECRET_KEY;
+    wire [127:0] expected_response;
     reg [7:0] response_buffer [0:37];  // "RESP:YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n" (38 bytes)
+
+    // Authentication calculator
+    auth_calc #(
+        .WIDTH(128)
+    ) auth_calculator (
+        .challenge(challenge_snapshot),
+        .secret(SECRET_KEY),
+        .response(expected_response)
+    );
 
     // Authentication status
     reg authenticated = 0;
@@ -290,10 +299,8 @@ module top (
         assert(CONTROL_PIN == control_state);
     end
 
-    // Property 5: Expected response calculation is correct
-    always @(posedge CLK) begin
-        assert(expected_response == ((challenge_snapshot ^ SECRET_KEY) + SECRET_KEY));
-    end
+    // Property 5: Expected response is computed by auth_calc module
+    // (Verification of the calculation itself is in auth_calc.v)
 
     // Property 6: LED blink rate depends on authentication status
     always @(posedge CLK) begin

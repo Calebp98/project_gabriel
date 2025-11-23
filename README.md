@@ -33,38 +33,6 @@ We built an FPGA-based authentication system that acts as a hardware-level secur
 - Jumper wires
 - USB cables
 
-## Project Structure
-
-```
-project_gabriel/
-├── icebreaker/              # Main FPGA security modules (Stage 1)
-│   ├── top.v                # UART control with authentication logic
-│   ├── uart_rx.v            # UART receiver (formally verified)
-│   ├── uart_tx.v            # UART transmitter (formally verified)
-│   ├── lfsr.v               # Linear feedback shift register for crypto
-│   ├── *.sby                # Formal verification configurations
-│   └── test_auth.py         # Authentication test scripts
-│
-├── claude-fpga-helpers/     # AI-hardware feedback loops (Stage 2)
-│   └── experiments/         # Iterative development experiments
-│       ├── 20251123-170039-pin38-to-pin46/
-│       ├── 2025-01-23-secure-fpga-gatekeeper/
-│       └── ...              # Various LED and control experiments
-│
-├── red-blue-exercise/       # Adversarial AI testing (Stage 3)
-│   ├── blue-team/           # Defensive specifications and patches
-│   ├── red-team/            # Attack findings and vulnerabilities
-│   └── shared/              # Common target code and state
-│
-├── docs/
-│   ├── architecture_sat.md  # System architecture documentation
-│   ├── PICOPROBE_SETUP.md   # Complete picoprobe setup guide
-│   └── QUICKSTART_PICOPROBE.md  # 5-minute quick start
-│
-├── scripts/                 # Helper scripts for development
-└── fpga_pico_loader/        # Bootloader infrastructure
-```
-
 ## Stage 1: Formally Verified FPGA Security System
 
 The core security gatekeeper implementation is in the `icebreaker/` directory.
@@ -131,12 +99,14 @@ The `red-blue-exercise/` directory implements a red team/blue team methodology u
 ### Methodology
 
 **Blue Team (Defensive)**:
+
 - Writes formal specifications
 - Implements Verilog modules
 - Adds security properties
 - Patches vulnerabilities
 
 **Red Team (Offensive)**:
+
 - Analyzes specifications for gaps
 - Identifies potential exploits
 - Documents attack vectors
@@ -150,7 +120,7 @@ See `red-blue-exercise/shared/` for the current target code and game state. Each
 
 ### Programming with PicoProbe
 
-This project includes comprehensive tooling for programming Picos via SWD:
+This project includes tooling for programming Picos via SWD:
 
 - **Quick Start**: See `docs/QUICKSTART_PICOPROBE.md` (5 minutes)
 - **Full Setup**: See `docs/PICOPROBE_SETUP.md`
@@ -170,19 +140,11 @@ This project includes comprehensive tooling for programming Picos via SWD:
 
 We didn't get to a production-ready solution, but we **derisked some of our largest uncertainties** and have an **MVP of a formal verification workflow** that can be used on FPGAs.
 
-### What We Proved
+### What We Demo'd
 
 1. **AI can write formally verifiable hardware** - Claude successfully wrote Verilog modules that pass formal verification
 2. **Hardware feedback loops work** - Direct FPGA feedback dramatically accelerates AI-driven development
 3. **Adversarial AI improves security** - Red team/blue team methodology uncovers vulnerabilities that single-agent development misses
-
-### Scalability
-
-The key insight: **Claude Code is orders of magnitude cheaper than human Verilog engineers**. This means:
-
-- Hardware security systems too expensive to formally verify become feasible
-- Iteration cycles drop from days to hours
-- More critical infrastructure can be protected at scale
 
 ## Prerequisites
 
@@ -206,16 +168,19 @@ pip install -r requirements.txt
 ## Quick Start
 
 1. **Clone and navigate**:
+
    ```bash
    cd project_gabriel/icebreaker
    ```
 
 2. **Build and flash**:
+
    ```bash
    make && make prog
    ```
 
 3. **Test UART control**:
+
    ```bash
    screen /dev/tty.usbmodem* 115200
    # Type 'Y' or 'N' to control pins
@@ -232,26 +197,3 @@ pip install -r requirements.txt
 - `docs/PICOPROBE_SETUP.md` - PicoProbe configuration and troubleshooting
 - `docs/QUICKSTART_PICOPROBE.md` - 5-minute quick start guide
 - `icebreaker/README.md` - FPGA module details
-
-## Future Work
-
-Potential enhancements for production deployment:
-
-- Public key cryptography instead of symmetric keys
-- Secure key storage in FPGA NVCM
-- Multiple authentication levels
-- Audit logging of all access attempts
-- Integration with hardware security modules (HSMs)
-- Extended formal verification (unbounded proofs)
-
-## License
-
-Research and educational use.
-
-## Acknowledgments
-
-Built with Claude Code - demonstrating how AI can accelerate the development of formally verified security-critical hardware systems.
-
-## Contact
-
-For questions about this project or formal verification workflows, please open an issue on GitHub: https://github.com/Calebp98/project_gabriel

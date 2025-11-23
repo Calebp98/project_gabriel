@@ -10,6 +10,10 @@
 
 set -e  # Exit on error
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -18,7 +22,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}=== Building blink project ===${NC}"
-cd blink
+cd "$PROJECT_ROOT/blink"
 
 # Create build directory and configure if needed
 if [ ! -f build/Makefile ]; then
@@ -31,7 +35,6 @@ fi
 
 cd build
 make -j4
-cd ../..
 
 echo -e "${GREEN}✓ Build complete!${NC}"
 echo -e "Output: blink/build/blink.elf"

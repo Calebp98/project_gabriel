@@ -22,13 +22,16 @@ import subprocess
 import time
 import glob
 
-# Secret key (must match the one in top.v)
-SECRET_KEY = bytes.fromhex('A5C3DEADBEEFCAFE1337FACEB00BC0DE')
+# Secret key (must match the one in top.v) - 256 bits for ChaCha20
+SECRET_KEY = bytes.fromhex('A5C3DEADBEEFCAFE1337FACEB00BC0DE0123456789ABCDEFFEDCBA9876543210')
 
 def calculate_response(challenge):
-    """Calculate the expected response for a given challenge using AES-128."""
-    from Crypto.Cipher import AES
-    cipher = AES.new(SECRET_KEY, AES.MODE_ECB)
+    """Calculate the expected response for a given challenge using ChaCha20."""
+    from Crypto.Cipher import ChaCha20
+    # ChaCha20 requires a 96-bit nonce (12 bytes)
+    nonce = b'\x00' * 12
+    cipher = ChaCha20.new(key=SECRET_KEY, nonce=nonce)
+    # Encrypt the challenge to get the response
     response = cipher.encrypt(challenge)
     return response
 
@@ -61,7 +64,7 @@ def authenticate(ser, timeout=15):
                         challenge = bytes.fromhex(challenge_hex)
                         print(f"[AUTH] Received challenge: {challenge_hex}")
 
-                        # Calculate and send response using AES-128
+                        # Calculate and send response using ChaCha20
                         response = calculate_response(challenge)
                         response_hex = response.hex().upper()
                         response_msg = f"RESP:{response_hex}\n"

@@ -1,0 +1,11 @@
+# iCEBreaker Pin Constraints for Stage 2
+
+# 12 MHz clock
+set_io clk 35
+
+# PMOD1A Pin 1 - UART TX to Pico GP0
+set_io uart_tx 4
+
+# On-board LEDs
+set_io led_r 11   # Red LED
+set_io led_g 37   # Green LED

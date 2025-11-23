@@ -1,0 +1,330 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2025  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.58+86 (git sha1 8bc63ef6d, aarch64-apple-darwin23.5-clang++ 18.1.8 -fPIC -O3)
+
+-- Executing script file `../model/design.ys' --
+
+1. Executing Verilog-2005 frontend: grammar_fsm.v
+Parsing formal SystemVerilog input from `grammar_fsm.v' to AST representation.
+verilog frontend filename grammar_fsm.v
+Storing AST representation for module `$abstract\grammar_fsm'.
+Successfully finished Verilog frontend.
+
+2. Executing PREP pass.
+
+2.1. Executing HIERARCHY pass (managing design hierarchy).
+
+2.2. Executing AST frontend in derive mode using pre-parsed AST for module `\grammar_fsm'.
+Generating RTLIL representation for module `\grammar_fsm'.
+
+2.2.1. Analyzing design hierarchy..
+Top module:  \grammar_fsm
+
+2.2.2. Analyzing design hierarchy..
+Top module:  \grammar_fsm
+Removing unused module `$abstract\grammar_fsm'.
+Removed 1 unused modules.
+Module grammar_fsm directly or indirectly contains formal properties -> setting "keep" attribute.
+
+2.3. Executing PROC pass (convert processes to netlists).
+
+2.3.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+2.3.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 2 switch rules as full_case in process $proc$grammar_fsm.v:174$46 in module grammar_fsm.
+Marked 3 switch rules as full_case in process $proc$grammar_fsm.v:150$24 in module grammar_fsm.
+Marked 7 switch rules as full_case in process $proc$grammar_fsm.v:35$1 in module grammar_fsm.
+Removed a total of 0 dead cases.
+
+2.3.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 14 redundant assignments.
+Promoted 16 assignments to connections.
+
+2.3.4. Executing PROC_INIT pass (extract init attributes).
+Found init rule in `\grammar_fsm.$proc$grammar_fsm.v:173$84'.
+  Set init value: \bad_char_in_idle = 1'0
+Found init rule in `\grammar_fsm.$proc$grammar_fsm.v:148$83'.
+  Set init value: \seen_accept = 1'0
+Found init rule in `\grammar_fsm.$proc$grammar_fsm.v:147$82'.
+  Set init value: \seq_step = 2'00
+Found init rule in `\grammar_fsm.$proc$grammar_fsm.v:28$72'.
+  Set init value: \state = 3'000
+
+2.3.5. Executing PROC_ARST pass (detect async resets in processes).
+
+2.3.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~21 debug messages>
+
+2.3.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:173$84'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:148$83'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:147$82'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:122$79'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:121$76'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:120$73'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:28$72'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:205$70'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:200$68'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:191$55'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:185$51'.
+     1/1: $assert$grammar_fsm.v:187$54_EN
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:174$46'.
+     1/1: $0\bad_char_in_idle[0:0]
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:167$42'.
+     1/1: $assert$grammar_fsm.v:169$44_EN
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:150$24'.
+     1/2: $0\seen_accept[0:0]
+     2/2: $0\seq_step[1:0]
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:141$19'.
+     1/1: $assert$grammar_fsm.v:143$20_EN
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:135$14'.
+     1/1: $assert$grammar_fsm.v:137$15_EN
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:130$11'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:125$7'.
+Creating decoders for process `\grammar_fsm.$proc$grammar_fsm.v:35$1'.
+     1/3: $0\state[2:0]
+     2/3: $0\reject[0:0]
+     3/3: $0\accept[0:0]
+
+2.3.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+
+2.3.9. Executing PROC_DFF pass (convert process syncs to FFs).
+Creating register for signal `\grammar_fsm.\bad_char_in_idle' using process `\grammar_fsm.$proc$grammar_fsm.v:174$46'.
+  created $dff cell `$procdff$192' with positive edge clock.
+Creating register for signal `\grammar_fsm.\seq_step' using process `\grammar_fsm.$proc$grammar_fsm.v:150$24'.
+  created $dff cell `$procdff$193' with positive edge clock.
+Creating register for signal `\grammar_fsm.\seen_accept' using process `\grammar_fsm.$proc$grammar_fsm.v:150$24'.
+  created $dff cell `$procdff$194' with positive edge clock.
+Creating register for signal `\grammar_fsm.\accept' using process `\grammar_fsm.$proc$grammar_fsm.v:35$1'.
+  created $dff cell `$procdff$195' with positive edge clock.
+Creating register for signal `\grammar_fsm.\reject' using process `\grammar_fsm.$proc$grammar_fsm.v:35$1'.
+  created $dff cell `$procdff$196' with positive edge clock.
+Creating register for signal `\grammar_fsm.\state' using process `\grammar_fsm.$proc$grammar_fsm.v:35$1'.
+  created $dff cell `$procdff$197' with positive edge clock.
+
+2.3.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+2.3.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:173$84'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:148$83'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:147$82'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:122$79'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:121$76'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:120$73'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:28$72'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:205$70'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:200$68'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:191$55'.
+Found and cleaned up 1 empty switch in `\grammar_fsm.$proc$grammar_fsm.v:185$51'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:185$51'.
+Found and cleaned up 3 empty switches in `\grammar_fsm.$proc$grammar_fsm.v:174$46'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:174$46'.
+Found and cleaned up 1 empty switch in `\grammar_fsm.$proc$grammar_fsm.v:167$42'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:167$42'.
+Found and cleaned up 6 empty switches in `\grammar_fsm.$proc$grammar_fsm.v:150$24'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:150$24'.
+Found and cleaned up 1 empty switch in `\grammar_fsm.$proc$grammar_fsm.v:141$19'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:141$19'.
+Found and cleaned up 1 empty switch in `\grammar_fsm.$proc$grammar_fsm.v:135$14'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:135$14'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:130$11'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:125$7'.
+Found and cleaned up 8 empty switches in `\grammar_fsm.$proc$grammar_fsm.v:35$1'.
+Removing empty process `grammar_fsm.$proc$grammar_fsm.v:35$1'.
+Cleaned up 21 empty switches.
+
+2.3.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module grammar_fsm.
+<suppressed ~11 debug messages>
+
+2.4. Executing FUTURE pass.
+
+2.5. Executing OPT_EXPR pass (perform const folding).
+Optimizing module grammar_fsm.
+
+2.6. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \grammar_fsm..
+Removed 0 unused cells and 59 unused wires.
+<suppressed ~1 debug messages>
+
+2.7. Executing CHECK pass (checking for obvious problems).
+Checking module grammar_fsm...
+Found and reported 0 problems.
+
+2.8. Executing OPT pass (performing simple optimizations).
+
+2.8.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module grammar_fsm.
+
+2.8.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\grammar_fsm'.
+<suppressed ~81 debug messages>
+Removed a total of 27 cells.
+
+2.8.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \grammar_fsm..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+      Replacing known input bits on port A of cell $procmux$87: \bad_char_in_idle -> 1'0
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~46 debug messages>
+
+2.8.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \grammar_fsm.
+  Optimizing cells in module \grammar_fsm.
+Performed a total of 1 changes.
+
+2.8.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\grammar_fsm'.
+<suppressed ~12 debug messages>
+Removed a total of 4 cells.
+
+2.8.6. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \grammar_fsm..
+Removed 0 unused cells and 32 unused wires.
+<suppressed ~1 debug messages>
+
+2.8.7. Executing OPT_EXPR pass (perform const folding).
+Optimizing module grammar_fsm.
+
+2.8.8. Rerunning OPT passes. (Maybe there is more to do..)
+
+2.8.9. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \grammar_fsm..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~45 debug messages>
+
+2.8.10. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \grammar_fsm.
+    New ctrl vector for $pmux cell $procmux$125: { $eq$grammar_fsm.v:157$33_Y $eq$grammar_fsm.v:159$38_Y $auto$opt_reduce.cc:137:opt_pmux$199 }
+    New ctrl vector for $pmux cell $procmux$152: { $eq$grammar_fsm.v:157$33_Y $eq$grammar_fsm.v:159$38_Y $auto$opt_reduce.cc:137:opt_pmux$201 }
+  Optimizing cells in module \grammar_fsm.
+Performed a total of 2 changes.
+
+2.8.11. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\grammar_fsm'.
+<suppressed ~3 debug messages>
+Removed a total of 1 cells.
+
+2.8.12. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \grammar_fsm..
+Removed 0 unused cells and 1 unused wires.
+<suppressed ~1 debug messages>
+
+2.8.13. Executing OPT_EXPR pass (perform const folding).
+Optimizing module grammar_fsm.
+
+2.8.14. Rerunning OPT passes. (Maybe there is more to do..)
+
+2.8.15. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \grammar_fsm..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~41 debug messages>
+
+2.8.16. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \grammar_fsm.
+Performed a total of 0 changes.
+
+2.8.17. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\grammar_fsm'.
+Removed a total of 0 cells.
+
+2.8.18. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \grammar_fsm..
+
+2.8.19. Executing OPT_EXPR pass (perform const folding).
+Optimizing module grammar_fsm.
+
+2.8.20. Finished fast OPT passes. (There is nothing left to do.)
+
+2.9. Executing WREDUCE pass (reducing word size of cells).
+Removed top 1 bits (of 3) from port B of cell grammar_fsm.$eq$grammar_fsm.v:137$16 ($eq).
+Removed top 1 bits (of 8) from port B of cell grammar_fsm.$eq$grammar_fsm.v:155$26 ($eq).
+Removed top 1 bits (of 2) from port B of cell grammar_fsm.$eq$grammar_fsm.v:157$30 ($eq).
+Removed top 1 bits (of 8) from port B of cell grammar_fsm.$eq$grammar_fsm.v:157$31 ($eq).
+Removed top 2 bits (of 3) from port B of cell grammar_fsm.$eq$grammar_fsm.v:157$33 ($eq).
+Removed top 1 bits (of 8) from port B of cell grammar_fsm.$eq$grammar_fsm.v:159$36 ($eq).
+Removed top 1 bits (of 3) from port B of cell grammar_fsm.$eq$grammar_fsm.v:159$38 ($eq).
+Removed top 1 bits (of 8) from port B of cell grammar_fsm.$ne$grammar_fsm.v:178$49 ($ne).
+
+2.10. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \grammar_fsm..
+
+2.11. Executing MEMORY_COLLECT pass (generating $mem cells).
+
+2.12. Executing OPT pass (performing simple optimizations).
+
+2.12.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module grammar_fsm.
+
+2.12.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\grammar_fsm'.
+Removed a total of 0 cells.
+
+2.12.3. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \grammar_fsm..
+
+2.12.4. Finished fast OPT passes.
+
+2.13. Printing statistics.
+
+=== grammar_fsm ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       76 wires
+      103 wire bits
+       10 public wires
+       20 public wire bits
+        6 ports
+       13 port bits
+       88 cells
+       16   $check
+        6   $dff
+       10   $eq
+        1   $le
+       13   $logic_and
+        4   $logic_not
+        3   $logic_or
+       28   $mux
+        1   $ne
+        2   $not
+        3   $pmux
+        1   $reduce_or
+
+2.14. Executing CHECK pass (checking for obvious problems).
+Checking module grammar_fsm...
+Found and reported 0 problems.
+
+3. Executing HIERARCHY pass (managing design hierarchy).
+Attribute `top' found on module `grammar_fsm'. Setting top module to grammar_fsm.
+
+3.1. Analyzing design hierarchy..
+Top module:  \grammar_fsm
+
+3.2. Analyzing design hierarchy..
+Top module:  \grammar_fsm
+Removed 0 unused modules.
+Module grammar_fsm directly or indirectly contains formal properties -> setting "keep" attribute.
+
+4. Executing jny backend.
+
+5. Executing RTLIL backend.
+Output filename: ../model/design.il
+
+End of script. Logfile hash: 5d43dcd3b3, CPU: user 0.02s system 0.02s, MEM: 16.31 MB peak
+Yosys 0.58+86 (git sha1 8bc63ef6d, aarch64-apple-darwin23.5-clang++ 18.1.8 -fPIC -O3)
+Time spent: 18% 6x opt_clean (0 sec), 17% 7x opt_expr (0 sec), ...

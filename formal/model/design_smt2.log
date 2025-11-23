@@ -1,0 +1,67 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2025  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.58+86 (git sha1 8bc63ef6d, aarch64-apple-darwin23.5-clang++ 18.1.8 -fPIC -O3)
+
+-- Executing script file `design_smt2.ys' --
+
+1. Executing RTLIL frontend.
+Input filename: design_prep.il
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+Attribute `top' found on module `grammar_fsm'. Setting top module to grammar_fsm.
+
+2.1. Analyzing design hierarchy..
+Top module:  \grammar_fsm
+
+2.2. Analyzing design hierarchy..
+Top module:  \grammar_fsm
+Removed 0 unused modules.
+Module grammar_fsm directly or indirectly contains formal properties -> setting "keep" attribute.
+
+3. Executing FORMALFF pass.
+
+4. Executing DFFUNMAP pass (unmap clock enable and synchronous reset from FFs).
+
+5. Printing statistics.
+
+=== grammar_fsm ===
+
+        +----------Local Count, excluding submodules.
+        | 
+       87 wires
+      114 wire bits
+       10 public wires
+       20 public wire bits
+        6 ports
+       13 port bits
+       93 cells
+        2   $anyinit
+        6   $assert
+        4   $assume
+       10   $eq
+       15   $ff
+        1   $initstate
+        1   $le
+       11   $logic_and
+        4   $logic_not
+        3   $logic_or
+       28   $mux
+        1   $ne
+        3   $not
+        3   $pmux
+        1   $reduce_or
+
+6. Executing SMT2 backend.
+
+6.1. Executing BMUXMAP pass.
+
+6.2. Executing DEMUXMAP pass.
+Creating SMT-LIBv2 representation of module grammar_fsm.
+
+End of script. Logfile hash: 3be2216729, CPU: user 0.01s system 0.01s, MEM: 13.80 MB peak
+Yosys 0.58+86 (git sha1 8bc63ef6d, aarch64-apple-darwin23.5-clang++ 18.1.8 -fPIC -O3)
+Time spent: 72% 2x write_smt2 (0 sec), 15% 2x read_rtlil (0 sec), ...

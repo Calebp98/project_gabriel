@@ -1,0 +1,7 @@
+# Pin constraints for drive_pin46 experiment
+
+# Clock (12 MHz oscillator)
+set_io CLK 35
+
+# Pin 46 (PMOD1A) - output
+set_io PIN_46 46

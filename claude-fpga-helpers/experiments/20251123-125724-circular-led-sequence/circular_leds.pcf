@@ -1,0 +1,21 @@
+# Pin constraints for circular LED sequence
+# iCEBreaker v1.0 with snap-off section
+
+# Clock (12 MHz)
+set_io CLK 35
+
+# Main board LEDs (active low)
+set_io LED_RED 11
+set_io LED_GREEN 37
+
+# Snap-off section LEDs (active high) on PMOD2
+set_io P2_1 27
+set_io P2_2 25
+set_io P2_3 21
+set_io P2_7 26
+set_io P2_8 23
+
+# RGB LED (active low for common anode)
+set_io LED_RGB0 39
+set_io LED_RGB1 40
+set_io LED_RGB2 41

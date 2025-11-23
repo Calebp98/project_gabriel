@@ -1,0 +1,22 @@
+[tasks]
+bmc
+cover
+prove
+
+[options]
+bmc: mode bmc
+bmc: depth 200
+cover: mode cover
+cover: depth 100
+prove: mode prove
+prove: depth 50
+
+[engines]
+smtbmc boolector
+
+[script]
+read -formal secure_gatekeeper_formal.v
+prep -top top
+
+[files]
+secure_gatekeeper_formal.v

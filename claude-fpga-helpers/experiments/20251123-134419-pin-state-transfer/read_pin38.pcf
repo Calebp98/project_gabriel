@@ -1,0 +1,10 @@
+# Pin constraints for read_pin38 experiment
+
+# Clock (12 MHz oscillator)
+set_io CLK 35
+
+# Pin 38 (PMOD1B)
+set_io PIN_38 38
+
+# UART TX (via picoprobe)
+set_io TX 2

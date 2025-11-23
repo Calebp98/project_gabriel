@@ -1,0 +1,22 @@
+# LED Sequencer Pin Constraints
+# iCEBreaker FPGA - LED sequence in circular/diamond pattern
+
+# Clock Input (12 MHz)
+set_io CLK 35
+
+# Main board LEDs (active low) - turning these off
+set_io LEDR_N 11
+set_io LEDG_N 37
+
+# RGB LED (active low) - turning these off
+set_io LED_RGB0 39
+set_io LED_RGB1 40
+set_io LED_RGB2 41
+
+# 5-LED array on break-off section (active high)
+# Using PMOD2 pins in a diamond/circular pattern
+set_io LED1 27    # PMOD2_1 - Top
+set_io LED2 25    # PMOD2_2 - Left
+set_io LED3 21    # PMOD2_3 - Center
+set_io LED4 19    # PMOD2_4 - Right
+set_io LED5 26    # PMOD2_7 - Bottom

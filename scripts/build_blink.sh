@@ -68,8 +68,8 @@ fi
 
 cd build
 
-# Clean if requested
-if [ "$CLEAN" = true ]; then
+# Clean if requested OR if period was changed (to force rebuild with new define)
+if [ "$CLEAN" = true ] || [ -n "$PERIOD" ]; then
     echo -e "${YELLOW}Cleaning build artifacts...${NC}"
     make clean
 fi

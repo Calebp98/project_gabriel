@@ -26,9 +26,6 @@ NC='\033[0m' # No Color
 
 SERIAL_PORT="${1:-/dev/tty.usbmodem1302}"
 
-# Build the project
-"$SCRIPT_DIR/build_blink.sh"
-
 echo -e "\n${BLUE}=== Flashing to target Pico ===${NC}"
 python3 "$SCRIPT_DIR/flash_authenticated.py" "$PROJECT_ROOT/blink/build/blink.elf" "$SERIAL_PORT"
 

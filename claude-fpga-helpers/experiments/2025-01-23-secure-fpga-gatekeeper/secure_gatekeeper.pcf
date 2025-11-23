@@ -1,0 +1,16 @@
+# Pin Constraint File for Secure FPGA Gatekeeper
+# iCEBreaker FPGA Board
+
+# System Clock (12 MHz)
+set_io CLK 35
+
+# UART Communication (via Pico Probe)
+set_io UART_TX 2    # FPGA transmits to laptop
+set_io UART_RX 3    # FPGA receives from laptop
+
+# Jamming Control
+set_io JAM_CTRL 4      # SWD clock jamming control (HIGH=jam, LOW=allow)
+set_io JAM_STATUS 38   # Loopback verification of JAM_CTRL
+
+# Blink Detection
+set_io BLINK_IN 43     # Blink pattern from target Pico

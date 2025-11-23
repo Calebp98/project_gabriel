@@ -1,0 +1,143 @@
+# =============================================================================
+# iCEBreaker FPGA - Complete Pin Configuration Template
+# =============================================================================
+# This is a comprehensive reference of all available pins on the iCEBreaker.
+# Copy this file and uncomment/customize the pins you need for your project.
+#
+# Board: iCEBreaker v1.0
+# FPGA: Lattice iCE40UP5K-SG48
+# Clock: 12 MHz oscillator
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Clock Input (12 MHz)
+# -----------------------------------------------------------------------------
+set_io CLK 35
+
+
+# -----------------------------------------------------------------------------
+# User Button (Active Low)
+# -----------------------------------------------------------------------------
+# set_io BTN_N 10
+
+
+# -----------------------------------------------------------------------------
+# RGB LEDs (Active Low)
+# -----------------------------------------------------------------------------
+# LED1 (closest to USB connector)
+# set_io LED1_R 11
+# set_io LED1_G 37
+
+# LED2
+# set_io LED2_R 11
+# set_io LED2_G 37
+
+# LED3
+# set_io LED3_R 11
+# set_io LED3_G 37
+
+# LED4
+# set_io LED4_R 11
+# set_io LED4_G 37
+
+# LED5 (furthest from USB connector)
+# set_io LED5_R 11
+# set_io LED5_G 37
+
+# Note: iCEBreaker has 5 bicolor (Red/Green) LEDs
+# Some designs use these aliases:
+# set_io LEDR_N 11    # Red LED (active low)
+# set_io LEDG_N 37    # Green LED (active low)
+
+
+# -----------------------------------------------------------------------------
+# PMOD 1A Connector (Top Row: 1-4, Bottom Row: 7-10)
+# -----------------------------------------------------------------------------
+# Standard PMOD pinout with 3.3V power
+# set_io PMOD1A_1  4    # Pin 1
+# set_io PMOD1A_2  2    # Pin 2
+# set_io PMOD1A_3  47   # Pin 3
+# set_io PMOD1A_4  45   # Pin 4
+# set_io PMOD1A_7  3    # Pin 7
+# set_io PMOD1A_8  48   # Pin 8
+# set_io PMOD1A_9  46   # Pin 9
+# set_io PMOD1A_10 44   # Pin 10
+
+# Common UART mapping on PMOD 1A:
+# set_io UART_TX 4     # PMOD1A_1 - Transmit
+# set_io UART_RX 3     # PMOD1A_7 - Receive
+
+
+# -----------------------------------------------------------------------------
+# PMOD 1B Connector (Top Row: 1-4, Bottom Row: 7-10)
+# -----------------------------------------------------------------------------
+# set_io PMOD1B_1  43   # Pin 1
+# set_io PMOD1B_2  38   # Pin 2
+# set_io PMOD1B_3  34   # Pin 3
+# set_io PMOD1B_4  31   # Pin 4
+# set_io PMOD1B_7  42   # Pin 7
+# set_io PMOD1B_8  36   # Pin 8
+# set_io PMOD1B_9  32   # Pin 9
+# set_io PMOD1B_10 28   # Pin 10
+
+
+# -----------------------------------------------------------------------------
+# PMOD 2 Connector (Top Row: 1-4, Bottom Row: 7-10)
+# -----------------------------------------------------------------------------
+# set_io PMOD2_1  27   # Pin 1
+# set_io PMOD2_2  25   # Pin 2
+# set_io PMOD2_3  21   # Pin 3
+# set_io PMOD2_4  19   # Pin 4
+# set_io PMOD2_7  26   # Pin 7
+# set_io PMOD2_8  23   # Pin 8
+# set_io PMOD2_9  20   # Pin 9
+# set_io PMOD2_10 18   # Pin 10
+
+
+# -----------------------------------------------------------------------------
+# SPI Flash (W25Q128JV - typically don't modify these)
+# -----------------------------------------------------------------------------
+# set_io FLASH_SCK  15
+# set_io FLASH_SSB  16
+# set_io FLASH_IO0  14
+# set_io FLASH_IO1  17
+# set_io FLASH_IO2  12
+# set_io FLASH_IO3  13
+
+
+# -----------------------------------------------------------------------------
+# Example Configurations
+# -----------------------------------------------------------------------------
+
+# Example 1: Simple LED blinker
+# Uncomment these for a basic LED project:
+# set_io CLK 35
+# set_io LED_RED 11
+# set_io LED_GREEN 37
+
+# Example 2: UART communication
+# Uncomment these for UART TX/RX:
+# set_io CLK 35
+# set_io UART_TX 4     # PMOD1A_1
+# set_io UART_RX 3     # PMOD1A_7
+# set_io LED_RX 11     # Activity indicator
+# set_io LED_TX 37     # Activity indicator
+
+# Example 3: Button + LED
+# set_io CLK 35
+# set_io BTN_N 10
+# set_io LED_RED 11
+# set_io LED_GREEN 37
+
+
+# -----------------------------------------------------------------------------
+# Usage Notes
+# -----------------------------------------------------------------------------
+# 1. All RGB LEDs are active LOW (set to 0 to turn on)
+# 2. Button is active LOW (reads 0 when pressed)
+# 3. Clock is always 12 MHz - use clock dividers for slower frequencies
+# 4. PMOD connectors provide 3.3V logic levels
+# 5. Total available user I/O pins: ~39 (depends on flash config)
+#
+# For more info: https://github.com/icebreaker-fpga/icebreaker
+# =============================================================================

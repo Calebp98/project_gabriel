@@ -13,11 +13,15 @@
 #endif
 
 #ifndef LED_DELAY_MS
-#define LED_DELAY_MS 200
+#define LED_DELAY_MS 2000
 #endif
 
 // Perform initialisation
 int pico_led_init(void) {
+    // Initialize pin 16 for external LED
+    gpio_init(16);
+    gpio_set_dir(16, GPIO_OUT);
+
 #if defined(PICO_DEFAULT_LED_PIN)
     // A device like Pico that uses a GPIO for the LED will define PICO_DEFAULT_LED_PIN
     // so we can use normal GPIO functionality to turn the led on and off
@@ -32,6 +36,9 @@ int pico_led_init(void) {
 
 // Turn the led on or off
 void pico_set_led(bool led_on) {
+    // Set pin 16 to match internal LED
+    gpio_put(16, led_on);
+
 #if defined(PICO_DEFAULT_LED_PIN)
     // Just set the GPIO on or off
     gpio_put(PICO_DEFAULT_LED_PIN, led_on);

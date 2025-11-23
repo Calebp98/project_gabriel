@@ -1,6 +1,6 @@
 // Challenge-response authentication system
-// Sends "CHAL:XXXX\n" every 5 seconds
-// Expects "RESP:YYYY\n" where YYYY = (XXXX XOR secret) + secret
+// Sends "CHAL:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n" every 5 seconds (128-bit challenge)
+// Expects "RESP:YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n" where YYYY... = (XXXX... XOR secret) + secret
 // If authenticated, accepts 'Y' (pin LOW/0V) or 'N' (pin HIGH/3.3V) commands
 // LED blinks fast if authenticated, slow if not
 
@@ -12,8 +12,8 @@ module top (
     output wire LED1         // Status LED
 );
 
-    // Secret key for authentication
-    localparam [15:0] SECRET_KEY = 16'hA5C3;
+    // Secret key for authentication (128-bit)
+    localparam [127:0] SECRET_KEY = 128'hDEAD_BEEF_CAFE_BABE_1337_C0DE_FACE_FEED;
 
     // Challenge period: 5 seconds at 12 MHz = 60,000,000 cycles
     localparam [25:0] CHALLENGE_PERIOD = 26'd60_000_000;
@@ -34,14 +34,14 @@ module top (
     // State and timers
     reg [1:0] state = STATE_IDLE;
     reg [25:0] timer = 0;
-    reg [3:0] send_index = 0;
-    reg [3:0] recv_index = 0;
+    reg [5:0] send_index = 0;  // 0-37 for 38-byte message
+    reg [5:0] recv_index = 0;  // 0-37 for 38-byte response
 
-    // Challenge/response
-    wire [15:0] challenge;
-    reg [15:0] challenge_snapshot = 0;  // Snapshot of challenge when sent
-    wire [15:0] expected_response = (challenge_snapshot ^ SECRET_KEY) + SECRET_KEY;
-    reg [7:0] response_buffer [0:9];  // "RESP:YYYY\n"
+    // Challenge/response (128-bit)
+    wire [127:0] challenge;
+    reg [127:0] challenge_snapshot = 0;  // Snapshot of challenge when sent
+    wire [127:0] expected_response = (challenge_snapshot ^ SECRET_KEY) + SECRET_KEY;
+    reg [7:0] response_buffer [0:37];  // "RESP:YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n" (38 bytes)
 
     // Authentication status
     reg authenticated = 0;
@@ -121,7 +121,7 @@ module top (
 
         // Handle Y/N commands when authenticated (but not during response collection)
         if (authenticated && rx_data_valid &&
-            !(state == STATE_WAIT_RESPONSE && recv_index < 10)) begin
+            !(state == STATE_WAIT_RESPONSE && recv_index < 38)) begin
             case (rx_data)
                 8'h59,  // 'Y'
                 8'h79:  // 'y'
@@ -153,26 +153,30 @@ module top (
             end
 
             STATE_SEND_CHALLENGE: begin
-                // Send "CHAL:XXXX\n" character by character
+                // Send "CHAL:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n" character by character (38 bytes)
                 // Wait for falling edge before incrementing
                 if (tx_busy_prev && !tx_busy) begin
                     send_index <= send_index + 1;
                 end
 
                 if (!tx_busy && !tx_busy_prev) begin
-                    if (send_index < 10) begin
-                        case (send_index)
-                            0: tx_data <= 8'h43;  // 'C'
-                            1: tx_data <= 8'h48;  // 'H'
-                            2: tx_data <= 8'h41;  // 'A'
-                            3: tx_data <= 8'h4C;  // 'L'
-                            4: tx_data <= 8'h3A;  // ':'
-                            5: tx_data <= nibble_to_hex(challenge_snapshot[15:12]);
-                            6: tx_data <= nibble_to_hex(challenge_snapshot[11:8]);
-                            7: tx_data <= nibble_to_hex(challenge_snapshot[7:4]);
-                            8: tx_data <= nibble_to_hex(challenge_snapshot[3:0]);
-                            9: tx_data <= 8'h0A;  // '\n'
-                        endcase
+                    if (send_index < 38) begin
+                        if (send_index == 0)
+                            tx_data <= 8'h43;  // 'C'
+                        else if (send_index == 1)
+                            tx_data <= 8'h48;  // 'H'
+                        else if (send_index == 2)
+                            tx_data <= 8'h41;  // 'A'
+                        else if (send_index == 3)
+                            tx_data <= 8'h4C;  // 'L'
+                        else if (send_index == 4)
+                            tx_data <= 8'h3A;  // ':'
+                        else if (send_index >= 5 && send_index <= 36) begin
+                            // Send 32 hex characters (indices 5-36)
+                            // nibble_index goes from 31 (most significant) to 0 (least significant)
+                            tx_data <= nibble_to_hex(challenge_snapshot[(36 - send_index) * 4 +: 4]);
+                        end else if (send_index == 37)
+                            tx_data <= 8'h0A;  // '\n'
                         tx_data_valid <= 1;
                     end else begin
                         // Done sending, wait for response
@@ -184,13 +188,13 @@ module top (
             end
 
             STATE_WAIT_RESPONSE: begin
-                // Collect response characters for verification
-                if (rx_data_valid && recv_index < 10) begin
+                // Collect response characters for verification (38 bytes)
+                if (rx_data_valid && recv_index < 38) begin
                     response_buffer[recv_index] <= rx_data;
                     recv_index <= recv_index + 1;
 
                     // Check for newline (end of response)
-                    if (rx_data == 8'h0A && recv_index >= 9) begin
+                    if (rx_data == 8'h0A && recv_index >= 37) begin
                         state <= STATE_VERIFY;
                     end
                 end
@@ -203,18 +207,31 @@ module top (
             end
 
             STATE_VERIFY: begin
-                // Parse "RESP:YYYY\n" and verify
+                // Parse "RESP:YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n" and verify (128-bit)
                 if (response_buffer[0] == 8'h52 &&  // 'R'
                     response_buffer[1] == 8'h45 &&  // 'E'
                     response_buffer[2] == 8'h53 &&  // 'S'
                     response_buffer[3] == 8'h50 &&  // 'P'
                     response_buffer[4] == 8'h3A) begin  // ':'
 
-                    // Extract hex response
-                    if ({hex_to_nibble(response_buffer[5]),
-                         hex_to_nibble(response_buffer[6]),
-                         hex_to_nibble(response_buffer[7]),
-                         hex_to_nibble(response_buffer[8])} == expected_response) begin
+                    // Extract 128-bit hex response from 32 hex characters (indices 5-36)
+                    if ({hex_to_nibble(response_buffer[5]),  hex_to_nibble(response_buffer[6]),
+                         hex_to_nibble(response_buffer[7]),  hex_to_nibble(response_buffer[8]),
+                         hex_to_nibble(response_buffer[9]),  hex_to_nibble(response_buffer[10]),
+                         hex_to_nibble(response_buffer[11]), hex_to_nibble(response_buffer[12]),
+                         hex_to_nibble(response_buffer[13]), hex_to_nibble(response_buffer[14]),
+                         hex_to_nibble(response_buffer[15]), hex_to_nibble(response_buffer[16]),
+                         hex_to_nibble(response_buffer[17]), hex_to_nibble(response_buffer[18]),
+                         hex_to_nibble(response_buffer[19]), hex_to_nibble(response_buffer[20]),
+                         hex_to_nibble(response_buffer[21]), hex_to_nibble(response_buffer[22]),
+                         hex_to_nibble(response_buffer[23]), hex_to_nibble(response_buffer[24]),
+                         hex_to_nibble(response_buffer[25]), hex_to_nibble(response_buffer[26]),
+                         hex_to_nibble(response_buffer[27]), hex_to_nibble(response_buffer[28]),
+                         hex_to_nibble(response_buffer[29]), hex_to_nibble(response_buffer[30]),
+                         hex_to_nibble(response_buffer[31]), hex_to_nibble(response_buffer[32]),
+                         hex_to_nibble(response_buffer[33]), hex_to_nibble(response_buffer[34]),
+                         hex_to_nibble(response_buffer[35]), hex_to_nibble(response_buffer[36])
+                        } == expected_response) begin
                         // Authentication successful!
                         authenticated <= 1;
                         auth_timer <= 0;
@@ -259,13 +276,13 @@ module top (
     // Property 2: Send index stays within bounds during SEND_CHALLENGE
     always @(posedge CLK) begin
         if (state == STATE_SEND_CHALLENGE)
-            assert(send_index <= 10);
+            assert(send_index <= 38);
     end
 
     // Property 3: Receive index stays within bounds during WAIT_RESPONSE
     always @(posedge CLK) begin
         if (state == STATE_WAIT_RESPONSE)
-            assert(recv_index <= 10);
+            assert(recv_index <= 38);
     end
 
     // Property 4: Control pin matches control_state

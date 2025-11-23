@@ -22,12 +22,12 @@ import subprocess
 import time
 import glob
 
-# Secret key (must match the one in top.v)
-SECRET_KEY = 0xA5C3
+# Secret key (must match the one in top.v) - 128-bit
+SECRET_KEY = 0xDEAD_BEEF_CAFE_BABE_1337_C0DE_FACE_FEED
 
 def calculate_response(challenge):
     """Calculate the expected response for a given challenge."""
-    return ((challenge ^ SECRET_KEY) + SECRET_KEY) & 0xFFFF
+    return ((challenge ^ SECRET_KEY) + SECRET_KEY) & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 
 def authenticate(ser, timeout=15):
     """
@@ -52,14 +52,14 @@ def authenticate(ser, timeout=15):
                 print(f"[AUTH] Received: {line}")
 
                 if line.startswith('CHAL:'):
-                    challenge_hex = line[5:9]
+                    challenge_hex = line[5:37]  # 32 hex characters for 128-bit
                     try:
                         challenge = int(challenge_hex, 16)
-                        print(f"[AUTH] Received challenge: 0x{challenge:04X}")
+                        print(f"[AUTH] Received challenge: 0x{challenge:032X}")
 
                         # Calculate and send response
                         response = calculate_response(challenge)
-                        response_msg = f"RESP:{response:04X}\n"
+                        response_msg = f"RESP:{response:032X}\n"  # 32 hex characters for 128-bit
                         ser.write(response_msg.encode('ascii'))
                         print(f"[AUTH] Sent response: {response_msg.strip()}")
                         print("[AUTH] ✓ Authentication successful!")

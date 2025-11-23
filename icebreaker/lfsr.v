@@ -1,30 +1,30 @@
-// 16-bit Linear Feedback Shift Register (LFSR)
+// 128-bit Linear Feedback Shift Register (LFSR)
 // Generates pseudo-random numbers for challenge generation
-// Uses polynomial x^16 + x^14 + x^13 + x^11 + 1 (maximal length)
+// Uses polynomial x^128 + x^29 + x^27 + x^2 + 1 (maximal length)
 
 module lfsr (
     input wire clk,
     input wire rst,
     input wire enable,
-    output reg [15:0] random
+    output reg [127:0] random
 );
 
     // Seed value (non-zero required for LFSR)
-    localparam SEED = 16'hACE1;  // "ACE1" for iCEbreaker :)
+    localparam [127:0] SEED = 128'hACE1_BABE_CAFE_DEAD_BEEF_FEED_FACE_C0DE;
 
     // Initialize to seed value
     initial random = SEED;
 
     wire feedback;
 
-    // Feedback polynomial: taps at bits 15, 13, 12, 10
-    assign feedback = random[15] ^ random[13] ^ random[12] ^ random[10];
+    // Feedback polynomial: taps at bits 127, 28, 26, 1
+    assign feedback = random[127] ^ random[28] ^ random[26] ^ random[1];
 
     always @(posedge clk) begin
         if (rst) begin
             random <= SEED;
         end else if (enable) begin
-            random <= {random[14:0], feedback};
+            random <= {random[126:0], feedback};
         end
     end
 
@@ -39,12 +39,12 @@ module lfsr (
 
     // Property 1: LFSR never becomes zero (maximal length property)
     always @(posedge clk) begin
-        assert(random != 16'h0000);
+        assert(random != 128'h0);
     end
 
     // Property 2: Feedback is correctly computed
     always @(posedge clk) begin
-        assert(feedback == (random[15] ^ random[13] ^ random[12] ^ random[10]));
+        assert(feedback == (random[127] ^ random[28] ^ random[26] ^ random[1]));
     end
 
     // Property 3: Reset behavior - LFSR resets to SEED
@@ -56,7 +56,7 @@ module lfsr (
     // Property 4: When enabled, LFSR shifts correctly
     always @(posedge clk) begin
         if (!rst && past_valid && !$past(rst) && $past(enable))
-            assert(random == {$past(random[14:0]), $past(feedback)});
+            assert(random == {$past(random[126:0]), $past(feedback)});
     end
 
     // Property 5: When not enabled, LFSR holds its value
@@ -67,15 +67,15 @@ module lfsr (
 
     // Property 6: SEED is non-zero (required for LFSR operation)
     always @(posedge clk) begin
-        assert(SEED != 16'h0000);
+        assert(SEED != 128'h0);
     end
 
     // Cover properties - verify LFSR can generate different values
     always @(posedge clk) begin
         cover(enable);
-        cover(random[15:12] == 4'hA);
-        cover(random[15:12] == 4'hF);
-        cover(random[15:12] == 4'h0);
+        cover(random[127:124] == 4'hA);
+        cover(random[127:124] == 4'hF);
+        cover(random[127:124] == 4'h0);
     end
 
     // Cover property - verify we can generate many different values

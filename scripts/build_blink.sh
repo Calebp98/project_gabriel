@@ -5,7 +5,10 @@
 # Builds the blink project for Raspberry Pi Pico
 #
 # Usage:
-#   ./scripts/build_blink.sh
+#   ./scripts/build_blink.sh [--clean]
+#
+# Options:
+#   --clean    Run 'make clean' before building
 #
 
 set -e  # Exit on error
@@ -13,6 +16,12 @@ set -e  # Exit on error
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Parse arguments
+CLEAN=false
+if [ "$1" == "--clean" ]; then
+    CLEAN=true
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -34,6 +43,13 @@ if [ ! -f build/Makefile ]; then
 fi
 
 cd build
+
+# Clean if requested
+if [ "$CLEAN" = true ]; then
+    echo -e "${YELLOW}Cleaning build artifacts...${NC}"
+    make clean
+fi
+
 make -j4
 
 echo -e "${GREEN}✓ Build complete!${NC}"

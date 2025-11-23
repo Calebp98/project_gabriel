@@ -21,13 +21,13 @@ import serial
 import subprocess
 import time
 import glob
+from Crypto.Cipher import ChaCha20
 
 # Secret key (must match the one in top.v) - 256 bits for ChaCha20
 SECRET_KEY = bytes.fromhex('A5C3DEADBEEFCAFE1337FACEB00BC0DE0123456789ABCDEFFEDCBA9876543210')
 
 def calculate_response(challenge):
     """Calculate the expected response for a given challenge using ChaCha20."""
-    from Crypto.Cipher import ChaCha20
     # ChaCha20 requires a 96-bit nonce (12 bytes)
     nonce = b'\x00' * 12
     cipher = ChaCha20.new(key=SECRET_KEY, nonce=nonce)

@@ -30,7 +30,6 @@ SERIAL_PORT="${1:-/dev/tty.usbmodem1302}"
 "$SCRIPT_DIR/build_blink.sh"
 
 echo -e "\n${BLUE}=== Flashing to target Pico ===${NC}"
-cd "$PROJECT_ROOT"
-python3 flash_authenticated.py blink/build/blink.elf "$SERIAL_PORT"
+python3 "$SCRIPT_DIR/flash_authenticated.py" "$PROJECT_ROOT/blink/build/blink.elf" "$SERIAL_PORT"
 
 echo -e "\n${GREEN}✓ Done!${NC}"

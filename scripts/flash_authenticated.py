@@ -27,12 +27,15 @@ from Crypto.Cipher import ChaCha20
 SECRET_KEY = bytes.fromhex('A5C3DEADBEEFCAFE1337FACEB00BC0DE0123456789ABCDEFFEDCBA9876543210')
 
 def calculate_response(challenge):
-    """Calculate the expected response for a given challenge using ChaCha20."""
-    # ChaCha20 requires a 96-bit nonce (12 bytes)
-    nonce = b'\x00' * 12
-    cipher = ChaCha20.new(key=SECRET_KEY, nonce=nonce)
-    # Encrypt the challenge to get the response
-    response = cipher.encrypt(challenge)
+    """Calculate the expected response for a given challenge using ChaCha20.
+
+    Challenge is 96 bits (12 bytes), used as the nonce.
+    We encrypt 16 bytes of zeros to get the 128-bit response.
+    """
+    # Use the challenge as the nonce (96 bits = 12 bytes)
+    cipher = ChaCha20.new(key=SECRET_KEY, nonce=challenge)
+    # Encrypt zeros to get the response
+    response = cipher.encrypt(b'\x00' * 16)
     return response
 
 def authenticate(ser, timeout=15):
@@ -58,9 +61,9 @@ def authenticate(ser, timeout=15):
                 print(f"[AUTH] Received: {line}")
 
                 if line.startswith('CHAL:'):
-                    challenge_hex = line[5:37]  # 32 hex chars for 128-bit challenge
+                    challenge_hex = line[5:29]  # 24 hex chars for 96-bit challenge
                     try:
-                        # Convert hex string to 16 bytes
+                        # Convert hex string to 12 bytes (96 bits)
                         challenge = bytes.fromhex(challenge_hex)
                         print(f"[AUTH] Received challenge: {challenge_hex}")
 

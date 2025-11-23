@@ -1,6 +1,6 @@
 //======================================================================
 // Challenge-response authentication system using ChaCha20
-// Sends "CHAL:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n" every 5 seconds (128-bit challenge)
+// Sends "CHAL:XXXXXXXXXXXXXXXXXXXXXXXX\n" every 5 seconds (96-bit challenge)
 // Expects "RESP:YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n" where YYYY = ChaCha20(XXXX, secret_key)
 // If authenticated, accepts 'Y' (pin LOW/0V) or 'N' (pin HIGH/3.3V) commands
 // LED blinks fast if authenticated, slow if not
@@ -38,12 +38,12 @@ module top (
     // State and timers
     reg [2:0] state = STATE_IDLE;
     reg [25:0] timer = 0;
-    reg [5:0] send_index = 0;  // Need up to 38 for 128-bit challenge
+    reg [5:0] send_index = 0;  // Need up to 30 for 96-bit challenge
     reg [5:0] recv_index = 0;
 
-    // Challenge/response (128-bit for AES)
-    wire [127:0] challenge;
-    reg [127:0] challenge_snapshot = 0;
+    // Challenge/response (96-bit challenge, 128-bit response)
+    wire [95:0] challenge;
+    reg [95:0] challenge_snapshot = 0;
     reg [7:0] response_buffer [0:37];  // "RESP:" + 32 hex chars + "\n" = 38 bytes
 
     // ChaCha20 for response verification
@@ -97,12 +97,12 @@ module top (
     );
 
     //----------------------------------------------------------------
-    // LFSR for challenge generation (8x 16-bit LFSRs = 128 bits)
+    // LFSR for challenge generation (6x 16-bit LFSRs = 96 bits)
     //----------------------------------------------------------------
-    wire [15:0] lfsr_out[0:7];
+    wire [15:0] lfsr_out[0:5];
     genvar i;
     generate
-        for (i = 0; i < 8; i = i + 1) begin : gen_lfsr
+        for (i = 0; i < 6; i = i + 1) begin : gen_lfsr
             lfsr #(.SEED(16'hACE1 + i)) lfsr_inst (
                 .clk(CLK),
                 .rst(1'b0),
@@ -112,12 +112,12 @@ module top (
         end
     endgenerate
 
-    assign challenge = {lfsr_out[7], lfsr_out[6], lfsr_out[5], lfsr_out[4],
-                        lfsr_out[3], lfsr_out[2], lfsr_out[1], lfsr_out[0]};
+    assign challenge = {lfsr_out[5], lfsr_out[4], lfsr_out[3],
+                        lfsr_out[2], lfsr_out[1], lfsr_out[0]};
 
     //----------------------------------------------------------------
     // ChaCha20 for challenge-response verification
-    // Use 96-bit all-zero nonce to match Python implementation
+    // Use challenge as nonce, encrypt zeros (cleaner approach for 96-bit)
     //----------------------------------------------------------------
     chacha20_compact chacha_inst (
         .clk(CLK),
@@ -125,8 +125,8 @@ module top (
         .start(chacha_start),
         .ready(chacha_ready),
         .key(SECRET_KEY),
-        .nonce(96'h0),              // 96-bit zero nonce (matches Python)
-        .plaintext(challenge_snapshot),  // Encrypt the challenge
+        .nonce(challenge_snapshot),  // Challenge IS the nonce
+        .plaintext(128'h0),          // Encrypt zeros to get response
         .output_block(chacha_output),
         .valid(chacha_valid)
     );
@@ -219,14 +219,14 @@ module top (
             end
 
             STATE_SEND_CHALLENGE: begin
-                // Send "CHAL:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n" (38 characters)
+                // Send "CHAL:XXXXXXXXXXXXXXXXXXXXXXXX\n" (30 characters: 5 + 24 + 1)
                 // Wait for falling edge before incrementing
                 if (tx_busy_prev && !tx_busy) begin
                     send_index <= send_index + 1;
                 end
 
                 if (!tx_busy && !tx_busy_prev) begin
-                    if (send_index < 38) begin
+                    if (send_index < 30) begin
                         if (send_index < 5) begin
                             // Send "CHAL:"
                             case (send_index)
@@ -236,10 +236,10 @@ module top (
                                 3: tx_data <= 8'h4C;  // 'L'
                                 4: tx_data <= 8'h3A;  // ':'
                             endcase
-                        end else if (send_index < 37) begin
-                            // Send 32 hex characters (128 bits / 4 bits per hex = 32 chars)
-                            // Index 5-36 are hex chars, map to nibbles 31 down to 0
-                            tx_data <= nibble_to_hex(challenge_snapshot[(36-send_index)*4 +: 4]);
+                        end else if (send_index < 29) begin
+                            // Send 24 hex characters (96 bits / 4 bits per hex = 24 chars)
+                            // Index 5-28 are hex chars, map to nibbles 23 down to 0
+                            tx_data <= nibble_to_hex(challenge_snapshot[(28-send_index)*4 +: 4]);
                         end else begin
                             // Send newline
                             tx_data <= 8'h0A;  // '\n'

@@ -117,6 +117,7 @@ module top (
 
     //----------------------------------------------------------------
     // ChaCha20 for challenge-response verification
+    // Use 96-bit all-zero nonce to match Python implementation
     //----------------------------------------------------------------
     chacha20_compact chacha_inst (
         .clk(CLK),
@@ -124,7 +125,8 @@ module top (
         .start(chacha_start),
         .ready(chacha_ready),
         .key(SECRET_KEY),
-        .nonce(challenge_snapshot),
+        .nonce(96'h0),              // 96-bit zero nonce (matches Python)
+        .plaintext(challenge_snapshot),  // Encrypt the challenge
         .output_block(chacha_output),
         .valid(chacha_valid)
     );

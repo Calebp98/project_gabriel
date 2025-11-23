@@ -27,7 +27,8 @@ module chacha20_compact(
 
     // Data (using as a PRF: key + nonce as input, output as authentication tag)
     input wire [255:0] key,     // 256-bit key
-    input wire [127:0] nonce,   // 128-bit nonce/plaintext
+    input wire [95:0] nonce,    // 96-bit nonce (standard ChaCha20)
+    input wire [127:0] plaintext,  // 128-bit plaintext to encrypt
     output reg [127:0] output_block  // 128-bit output (first 128 bits of ChaCha20 output)
 );
 
@@ -149,10 +150,10 @@ module chacha20_compact(
                         init_s9 <= key[95:64];
                         init_s10 <= key[63:32];
                         init_s11 <= key[31:0];
-                        init_s12 <= 32'h0;  // Block counter = 0
-                        init_s13 <= nonce[127:96];
-                        init_s14 <= nonce[95:64];
-                        init_s15 <= nonce[63:32] ^ nonce[31:0];  // Mix nonce for 128-bit input
+                        init_s12 <= 32'h0;  // Block counter = 0 (standard ChaCha20)
+                        init_s13 <= nonce[95:64];   // Nonce bits [95:64]
+                        init_s14 <= nonce[63:32];   // Nonce bits [63:32]
+                        init_s15 <= nonce[31:0];    // Nonce bits [31:0]
 
                         s0 <= C0;
                         s1 <= C1;
@@ -167,9 +168,9 @@ module chacha20_compact(
                         s10 <= key[63:32];
                         s11 <= key[31:0];
                         s12 <= 32'h0;
-                        s13 <= nonce[127:96];
-                        s14 <= nonce[95:64];
-                        s15 <= nonce[63:32] ^ nonce[31:0];
+                        s13 <= nonce[95:64];
+                        s14 <= nonce[63:32];
+                        s15 <= nonce[31:0];
 
                         round_counter <= 0;
                         ready <= 0;
@@ -209,12 +210,12 @@ module chacha20_compact(
                 end
 
                 STATE_DONE: begin
-                    // Add initial state and output first 128 bits
+                    // Add initial state and XOR with plaintext (standard ChaCha20)
                     output_block <= {
-                        s0 + init_s0,
-                        s1 + init_s1,
-                        s2 + init_s2,
-                        s3 + init_s3
+                        (s0 + init_s0) ^ plaintext[127:96],
+                        (s1 + init_s1) ^ plaintext[95:64],
+                        (s2 + init_s2) ^ plaintext[63:32],
+                        (s3 + init_s3) ^ plaintext[31:0]
                     };
                     valid <= 1;
                     ready <= 1;
